@@ -39,6 +39,7 @@ public class Main extends Application {
 
     // some things needed to remember during game
     private Scene myScene;
+//    private Bouncer myBouncer;
     private Bouncer myBouncer;
     private Rectangle myMover;
     private Rectangle myGrower;
@@ -50,69 +51,6 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        //        Text text = new Text();
-        //        text.setFont(new Font(45));
-        //        text.setX(50);
-        //        text.setY(150);
-        //        text.setText("Welcome to Brick Breaker");
-
-        //        Group root = new Group();
-        //        ObservableList list = root.getChildren();
-        //        list.add(text);
-
-        /*
-        Code for JavaFX application.
-        (Stage, scene, scene graph)
-        */
-        //        Line line = new Line();
-        //        line.setStartX(100.0);
-        //        line.setStartY(0.0);
-        //        line.setEndX(200.0);
-        //        line.setEndY(150.0);
-        //
-        //        Group root = new Group(line);
-
-        //        Rectangle rectangle = new Rectangle();
-        //        rectangle.setX(100.0);
-        //        rectangle.setY(200.0);
-        //        rectangle.setWidth(200.0);
-        //        rectangle.setHeight(50.0);
-        //
-        //        // Create translate transition
-        //        TranslateTransition translateTransition = new TranslateTransition();
-        //        translateTransition.setDuration(Duration.millis(1000));
-        //        translateTransition.setNode(rectangle);
-        //        translateTransition.setByX(300);
-        //        translateTransition.setCycleCount(50);
-        //        translateTransition.setAutoReverse(false);
-        //        translateTransition.play();
-        //
-        //
-        //        Group root = new Group(rectangle, text);
-        /* Old setup */
-        //        Group root = new Group();
-        //        root.getChildren().add(myPaddle);
-        //
-        //        Scene scene = new Scene(root);
-        //        scene.setOnKeyPressed(e -> {
-        //            switch (e.getCode()) {
-        //                case A:
-        //                    myPaddle.moveLeft();
-        //                    break;
-        //                case D:
-        //                    myPaddle.moveRight();
-        //                    break;
-        //                case SPACE:
-        //                    shoot();
-        //                    break;
-        //            }
-        //        });
-        //
-        //        stage.setTitle("Title");
-        //        stage.setScene(scene);
-        //        stage.show();
-        // attach scene to the stage and display it
-
         myScene = setupGame(SIZE, SIZE, BACKGROUND);
         stage.setScene(myScene);
         stage.setTitle(TITLE);
@@ -131,8 +69,9 @@ public class Main extends Application {
         Group root = new Group();
 
         // set up paddle
-        Image paddleImage = new Image(this.getClass().getClassLoader().getResourceAsStream(PADDLE_IMAGE));
-        myPaddle = new Paddle(SIZE-40, SIZE-40, 40, 40, "myPaddle", paddleImage);
+        int paddleWidth = 100;
+        int paddleHeight = 20;
+        myPaddle = new Paddle(SIZE - 40, SIZE - 40, paddleWidth, paddleHeight, Color.BLACK);
 
         // set up bouncer
         Image bouncerImg = new Image(this.getClass().getClassLoader().getResourceAsStream(BOUNCER_IMAGE));
@@ -145,17 +84,10 @@ public class Main extends Application {
                 bouncerImg
         );
 
-//        myMover = new Rectangle(width / 2 - MOVER_SIZE / 2, height / 2 - 100, MOVER_SIZE, MOVER_SIZE);
-//        myMover.setFill(MOVER_COLOR);
-//        myGrower = new Rectangle(width / 2 - GROWER_SIZE / 2, height / 2 + 50, GROWER_SIZE, GROWER_SIZE);
-//        myGrower.setFill(GROWER_COLOR);
-//
-//        // order added to the group is the order in which they are drawn
-//        root.getChildren().add(myBouncer);
-//        root.getChildren().add(myMover);
-//        root.getChildren().add(myGrower);
+
         root.getChildren().add(myPaddle);
         root.getChildren().add(myBouncer);
+
         // create a place to see the shapes
         Scene scene = new Scene(root, width, height, background);
         // respond to input
@@ -167,7 +99,26 @@ public class Main extends Application {
     // Change properties of shapes in small ways to animate them over time
     // Note, there are more sophisticated ways to animate shapes, but these simple ways work fine to start
     private void step (double elapsedTime) {
+        // update "actors" attributes
         myBouncer.move(elapsedTime);
+        if (myPaddle.getBoundsInParent().intersects(myBouncer.getBoundsInParent())) {
+            myPaddle.setFill(HIGHLIGHT);
+            myBouncer.flipDirectionY();
+        }
+        else {
+
+        }
+
+        if(myBouncer.getX() > SIZE - myBouncer.getFitWidth() || myBouncer.getX() < 0 + myBouncer.getFitWidth()){
+            myBouncer.flipDirectionX();
+        }
+        if(myBouncer.getY() > SIZE -myBouncer. getFitHeight() || myBouncer.getY() < 0 + myBouncer.getFitHeight()){
+            myBouncer.flipDirectionY();
+        }
+
+
+//        myBouncer.move(elapsedTime);
+
 //        // update "actors" attributes
 //        myBouncer.setX(myBouncer.getX() + DIRECTION_X * BOUNCER_SPEED * elapsedTime);
 //        myBouncer.setY(myBouncer.getY() + DIRECTION_Y * BOUNCER_SPEED * elapsedTime);
@@ -240,22 +191,36 @@ public class Main extends Application {
     }
 
 
-    private static class Sprite extends ImageView {
-        final String type;
-        Sprite(int startX, int startY, int width, int height, String type, Image image) {
-            super(image);
-            this.type = type;
 
-            setTranslateX(startX);
-            setTranslateY(startY);
+    private static class Bouncer extends ImageView {
+        int DIRECTION_X = 1;
+        int DIRECTION_Y = -1;
+        Bouncer(int startX, int startY, int width, int height, String type, Image image) {
+            super( image );
+
+            setTranslateX(width / 2 - getBoundsInLocal().getWidth() / 2);
+            setTranslateY(height / 2 - getBoundsInLocal().getHeight() / 2 +30);
+        }
+
+        void flipDirectionX(){
+            DIRECTION_X*=-1;
+        }
+        void flipDirectionY(){
+            DIRECTION_Y*=-1;
+        }
+
+        void move (double elapsedTime) {
+            setX(getX() + DIRECTION_X * BOUNCER_SPEED * elapsedTime);
+            setY(getY() + DIRECTION_Y * BOUNCER_SPEED * elapsedTime);
         }
     }
 
-    private static class Paddle extends Sprite {
-        boolean alive = true;
+    private static class Paddle extends Rectangle {
+        Paddle(int startX, int startY, int width, int height, Color color) {
+            super( width, height, color );
 
-        Paddle(int startX, int startY, int width, int height, String type, Image image) {
-            super( startX, startY,  width,  height,  type,  image);
+            setTranslateX(startX);
+            setTranslateY(startY);
         }
 
         void moveLeft() { setTranslateX(getTranslateX()-5); }
@@ -264,33 +229,6 @@ public class Main extends Application {
             setTranslateX(getTranslateX()+5);
         }
 
-        void moveUp() {
-            setTranslateY(getTranslateY()-5);
-        }
-
-        void modvDown() {
-            setTranslateY(getTranslateY()+5);
-        }
-    }
-
-    private static class Bouncer extends Sprite {
-        int DIRECTION_X = 1;
-        int DIRECTION_Y = -1;
-        Bouncer(int startX, int startY, int width, int height, String type, Image image) {
-            super( startX, startY,  width,  height,  type,  image);
-        }
-
-        void move (double elapsedTime) {
-            if(getX() > SIZE - getFitWidth() || getX() < 0 + getFitWidth()){
-                DIRECTION_X *= -1;
-            }
-            if(getY() > SIZE - getFitHeight() || getY() < 0 + getFitHeight()){
-                DIRECTION_Y *= -1;
-            }
-
-            setX(getX() + DIRECTION_X * BOUNCER_SPEED * elapsedTime);
-            setY(getY() + DIRECTION_Y * BOUNCER_SPEED * elapsedTime);
-        }
     }
 
     public static void main(String args[]){
