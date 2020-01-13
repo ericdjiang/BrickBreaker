@@ -9,7 +9,7 @@ Super Breakout: In addition to the standard power ups (detailed below), special 
 There will be at least 3 levels with increasing difficulty. The first level will feature the lowest ball speed and the weakest blocks. The second level will feature intermediate ball speed and stronger blocks. The third level will feature the fastest ball speed and strongest blocks. Power ups become more abundant as the level difficulty increases.
 
 ### Bricks Ideas
-The bricks will range in strength, requiring between 1 and 3 hits to destroy. They will be colored differently such that the user knows how many hits are remaining.
+The bricks will range in strength, requiring between 1 and 3 hits to destroy. They will be colored differently such that the user knows how many hits are remaining. Some bricks which take 1 hit to destroy give power ups.
 
 ### Power Up Ideas
 * Widen paddle
