@@ -2,12 +2,13 @@ package breakout;
 
 import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Shape;
 
 import java.awt.*;
 
 public class Bouncer extends Rectangle {
     int DIRECTION_X = 1;
-    int DIRECTION_Y = -1;
+    int DIRECTION_Y = 1;
     int vel = 3;
     Bouncer (int startX, int startY, int width, int height, Color color) {
         super( width, height, color);
@@ -16,8 +17,8 @@ public class Bouncer extends Rectangle {
 
 //        setFitWidth(width);
 //        setFitHeight(height);
-        setX(0);
-        setY(0);
+        setX(startX);
+        setY(startY);
     }
 
     void move () {
@@ -25,7 +26,7 @@ public class Bouncer extends Rectangle {
         setY(getY() + DIRECTION_Y * vel);
     }
 
-    void checkPaddleCollision (Paddle myPaddle){
+    void checkPaddleCollide (Paddle myPaddle){
         double thirdWidth = myPaddle.getWidth()/3;
         double x0 = myPaddle.getX();
         double x1 = myPaddle.getX() + thirdWidth;
@@ -51,6 +52,21 @@ public class Bouncer extends Rectangle {
         }
         if(getY() > STAGEHEIGHT - getHeight() || getY() < 0){
             flipDirectionY();
+        }
+    }
+
+    void checkBrickCollide (Brick myBrick) {
+        Shape intersection = Shape.intersect(this, myBrick);
+
+        double ballRightX = getX() + getWidth();
+        double ballLeftX = getX();
+        if(intersection.getBoundsInLocal().getWidth() != -1) {
+            if(ballLeftX <= myBrick.getX() ||  ballRightX >= myBrick.getX() + myBrick.getWidth()) {
+                flipDirectionX();
+            } else {
+                flipDirectionY();
+            }
+            myBrick.decrementStrength();
         }
     }
 
