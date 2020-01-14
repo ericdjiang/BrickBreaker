@@ -46,7 +46,7 @@ public class Main extends Application {
 
     // some things needed to remember during game
     private Scene myScene;
-    private Bouncer myBouncer;
+    private Bouncer mainBouncer;
     private Paddle myPaddle;
     private int score;
     private int currentLevel = 1;
@@ -112,7 +112,7 @@ public class Main extends Application {
         int bouncerWidth = 10;
         int bouncerHeight = 10;
         // set up bouncer
-        myBouncer = new Bouncer(
+        mainBouncer = new Bouncer(
                 STAGE_WIDTH/2 - bouncerWidth/2,
                 STAGE_HEIGHT - paddleHeight - bouncerHeight,
                 bouncerWidth,
@@ -120,10 +120,10 @@ public class Main extends Application {
                 Color.PLUM
         );
 
-        myBouncers.add(myBouncer);
+        myBouncers.add(mainBouncer);
 
         root.getChildren().add(myPaddle);
-        root.getChildren().add(myBouncer);
+        root.getChildren().add(mainBouncer);
 
         System.out.println("initing level " + newLevel);
         switch(newLevel){
@@ -158,6 +158,7 @@ public class Main extends Application {
 //                }
             default:
                 System.out.println("done");
+
                 break;
         }
     }
@@ -177,6 +178,8 @@ public class Main extends Application {
             if(myBouncer.checkBottomCollide(STAGE_HEIGHT)){
                 deadBouncers.add(myBouncer);
             }
+
+            myBouncer.move();
 
             for (Brick myBrick : myBricks) {
                 myBrick.changeColor();
@@ -213,7 +216,6 @@ public class Main extends Application {
         else if(myBouncers.size()==0){
             initLevel(1);
         }
-        myBouncer.move();
     }
 
 
@@ -223,7 +225,7 @@ public class Main extends Application {
         myPaddle.moveTo(x);
 
         if(gamePaused){
-            myBouncer.moveTo(x);
+            mainBouncer.moveTo(x);
         }
     }
 

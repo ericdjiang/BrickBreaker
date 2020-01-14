@@ -9,9 +9,9 @@ import java.awt.*;
 import java.util.ArrayList;
 
 public class Bouncer extends Rectangle {
-    int DIRECTION_X = 0;
-    int DIRECTION_Y = 0;
-    int vel = 3;
+    int directionX = 0;
+    int directionY = 0;
+    int vel = 5;
 
     boolean alive = true;
 
@@ -27,8 +27,8 @@ public class Bouncer extends Rectangle {
     }
 
     void move () {
-        setX(getX() + DIRECTION_X * vel);
-        setY(getY() + DIRECTION_Y * vel);
+        setX(getX() + directionX * vel);
+        setY(getY() + directionY * vel);
     }
 
     public void moveTo(double x) {
@@ -45,12 +45,12 @@ public class Bouncer extends Rectangle {
         double bouncerCenterX = getX() + getWidth()/2;
 
         Shape intersection = Shape.intersect(this, myPaddle);
-        if(intersection.getBoundsInLocal().getWidth() != -1 && DIRECTION_Y!=-1) {
+        if(intersection.getBoundsInLocal().getWidth() != -1 && directionY!=-1) {
             flipDirectionY();
             if (x0 <= bouncerCenterX && bouncerCenterX <= x1) {
-                DIRECTION_X = -1;
+                directionX = -1;
             } else if (x2 <= bouncerCenterX && bouncerCenterX <= x3) {
-                DIRECTION_X = 1;
+                directionX = 1;
             }
         }
     }
@@ -93,19 +93,19 @@ public class Bouncer extends Rectangle {
     }
 
     void stop() {
-        DIRECTION_Y = 0;
-        DIRECTION_X = 0;
+        directionY = 0;
+        directionX = 0;
     }
 
     void start() {
-        DIRECTION_X = 1;
-        DIRECTION_Y = -1;
+        directionX = 1;
+        directionY = -1;
     }
 
     void flipDirectionX(){
-        DIRECTION_X*=-1;
+        directionX*=-1;
     }
     void flipDirectionY(){
-        DIRECTION_Y*=-1;
+        directionY*=-1;
     }
 }
