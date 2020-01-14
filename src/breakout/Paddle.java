@@ -8,12 +8,12 @@ public class Paddle extends Rectangle {
     Paddle(int startX, int startY, int width, int height, Color color) {
         super( width, height, color );
 
-        setTranslateX(startX);
-        setTranslateY(startY);
+        setX(startX);
+        setY(startY);
     }
 
     public void moveTo(double x) {
-        setTranslateX(x-getWidth()/2);
+        setX(x-getWidth()/2);
     }
 
 }

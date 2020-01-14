@@ -20,38 +20,31 @@ import javafx.util.Duration;
  * @netid edj9
  */
 public class Main extends Application {
-    public static final String TITLE = "Brick Breaker";
-    public static final int SIZE = 400;
+    public static final String TITLE = "Bakeout - Eric Jiang";
+    public static final int STAGE_WIDTH = 400;
+    public static final int STAGE_HEIGHT = 300;
     public static final int FRAMES_PER_SECOND = 60;
     public static final int MILLISECOND_DELAY = 1000 / FRAMES_PER_SECOND;
     public static final double SECOND_DELAY = 1.0 / FRAMES_PER_SECOND;
     public static final Paint BACKGROUND = Color.AZURE;
     public static final Paint HIGHLIGHT = Color.OLIVEDRAB;
     public static final String BOUNCER_IMAGE = "ball.gif";
-    public static final String PADDLE_IMAGE = "paddle.gif";
     public static final int BOUNCER_SPEED = 300;
     public static final Paint MOVER_COLOR = Color.PLUM;
     public static final int MOVER_SIZE = 50;
-    public static final int PADDLE_SPEED = 20;
+    public static final int MOVER_SPEED = 5;
     public static final Paint GROWER_COLOR = Color.BISQUE;
     public static final double GROWER_RATE = 1.1;
     public static final int GROWER_SIZE = 50;
 
     // some things needed to remember during game
     private Scene myScene;
-//    private Bouncer myBouncer;
     private Bouncer myBouncer;
-    private Rectangle myMover;
-    private Rectangle myGrower;
-
     private Paddle myPaddle;
-
-    private int DIRECTION_X = 1;
-    private int DIRECTION_Y = 1;
 
     @Override
     public void start(Stage stage) throws Exception {
-        myScene = setupGame(SIZE, SIZE, BACKGROUND);
+        myScene = setupGame(STAGE_WIDTH, STAGE_HEIGHT, BACKGROUND);
         stage.setScene(myScene);
         stage.setTitle(TITLE);
         stage.show();
@@ -72,23 +65,22 @@ public class Main extends Application {
         int paddleWidth = 100;
         int paddleHeight = 5;
         myPaddle = new Paddle(
-                SIZE/2 - paddleWidth/2,
-                SIZE - paddleHeight,
+                STAGE_WIDTH/2 - paddleWidth/2,
+                STAGE_HEIGHT - paddleHeight,
                 paddleWidth,
                 paddleHeight,
                 Color.BLACK);
 
         // set up bouncer
-        Image bouncerImg = new Image(this.getClass().getClassLoader().getResourceAsStream(BOUNCER_IMAGE));
         myBouncer = new Bouncer(
-                222,
-                222,
+                0,
+                0,
                 10,
                 10,
-                "myBouncer",
-                bouncerImg,
-                3
+                Color.PLUM
         );
+
+
 
         root.getChildren().add(myPaddle);
         root.getChildren().add(myBouncer);
@@ -104,24 +96,8 @@ public class Main extends Application {
     // Change properties of shapes in small ways to animate them over time
     // Note, there are more sophisticated ways to animate shapes, but these simple ways work fine to start
     private void step (double elapsedTime) {
-        // update "actors" attributes
-        if (myPaddle.getBoundsInParent().intersects(myBouncer.getBoundsInParent())) {
-            myPaddle.setFill(HIGHLIGHT);
-            myBouncer.flipDirectionY();
-        }
-
-        System.out.println(myBouncer.getY());
-
-        if(myBouncer.getX() > SIZE - myBouncer.getFitWidth()){
-            myBouncer.DIRECTION_X = -1;
-        } else if ( myBouncer.getX() < 0 ) {
-            myBouncer.DIRECTION_X = 1;
-        }
-        if(myBouncer.getY() > SIZE - myBouncer.getFitHeight()){
-            myBouncer.DIRECTION_Y = -1;
-        } else if (myBouncer.getY() < 0) {
-            myBouncer.DIRECTION_Y = 1;
-        }
+        myBouncer.checkPaddleCollision(myPaddle);
+        myBouncer.checkWallCollide(STAGE_WIDTH, STAGE_HEIGHT);
 
         myBouncer.move();
 
@@ -165,6 +141,8 @@ public class Main extends Application {
 //            myGrower.setFill(GROWER_COLOR);
 //        }
     }
+
+
 
     // What to do each time a key is pressed
     private void handleMouseMove ( double x, double y) {
