@@ -32,7 +32,7 @@ public class Main extends Application {
     public static final int BOUNCER_SPEED = 300;
     public static final Paint MOVER_COLOR = Color.PLUM;
     public static final int MOVER_SIZE = 50;
-    public static final int MOVER_SPEED = 5;
+    public static final int PADDLE_SPEED = 20;
     public static final Paint GROWER_COLOR = Color.BISQUE;
     public static final double GROWER_RATE = 1.1;
     public static final int GROWER_SIZE = 50;
@@ -70,20 +70,25 @@ public class Main extends Application {
 
         // set up paddle
         int paddleWidth = 100;
-        int paddleHeight = 20;
-        myPaddle = new Paddle(SIZE - 40, SIZE - 40, paddleWidth, paddleHeight, Color.BLACK);
+        int paddleHeight = 5;
+        myPaddle = new Paddle(
+                SIZE/2 - paddleWidth/2,
+                SIZE - paddleHeight,
+                paddleWidth,
+                paddleHeight,
+                Color.BLACK);
 
         // set up bouncer
         Image bouncerImg = new Image(this.getClass().getClassLoader().getResourceAsStream(BOUNCER_IMAGE));
         myBouncer = new Bouncer(
-                192,
                 222,
-                40,
-                40,
+                222,
+                10,
+                10,
                 "myBouncer",
-                bouncerImg
+                bouncerImg,
+                3
         );
-
 
         root.getChildren().add(myPaddle);
         root.getChildren().add(myBouncer);
@@ -92,7 +97,7 @@ public class Main extends Application {
         Scene scene = new Scene(root, width, height, background);
         // respond to input
         scene.setOnKeyPressed(e -> handleKeyInput(e.getCode()));
-        scene.setOnMouseClicked(e -> handleMouseInput(e.getX(), e.getY()));
+        scene.setOnMouseMoved(e -> handleMouseMove(e.getX(), e.getY()));
         return scene;
     }
 
@@ -100,21 +105,25 @@ public class Main extends Application {
     // Note, there are more sophisticated ways to animate shapes, but these simple ways work fine to start
     private void step (double elapsedTime) {
         // update "actors" attributes
-        myBouncer.move(elapsedTime);
         if (myPaddle.getBoundsInParent().intersects(myBouncer.getBoundsInParent())) {
             myPaddle.setFill(HIGHLIGHT);
             myBouncer.flipDirectionY();
         }
-        else {
 
+        System.out.println(myBouncer.getY());
+
+        if(myBouncer.getX() > SIZE - myBouncer.getFitWidth()){
+            myBouncer.DIRECTION_X = -1;
+        } else if ( myBouncer.getX() < 0 ) {
+            myBouncer.DIRECTION_X = 1;
+        }
+        if(myBouncer.getY() > SIZE - myBouncer.getFitHeight()){
+            myBouncer.DIRECTION_Y = -1;
+        } else if (myBouncer.getY() < 0) {
+            myBouncer.DIRECTION_Y = 1;
         }
 
-        if(myBouncer.getX() > SIZE - myBouncer.getFitWidth() || myBouncer.getX() < 0 + myBouncer.getFitWidth()){
-            myBouncer.flipDirectionX();
-        }
-        if(myBouncer.getY() > SIZE -myBouncer. getFitHeight() || myBouncer.getY() < 0 + myBouncer.getFitHeight()){
-            myBouncer.flipDirectionY();
-        }
+        myBouncer.move();
 
 
 //        myBouncer.move(elapsedTime);
@@ -158,78 +167,20 @@ public class Main extends Application {
     }
 
     // What to do each time a key is pressed
+    private void handleMouseMove ( double x, double y) {
+        myPaddle.moveTo(x);
+    }
+
     private void handleKeyInput (KeyCode code) {
-        if (code == KeyCode.RIGHT) {
-            myPaddle.setX(myPaddle.getX() + MOVER_SPEED);
-        }
-        else if (code == KeyCode.LEFT) {
-            myPaddle.setX(myPaddle.getX() - MOVER_SPEED);
-        }
-//        else if (code == KeyCode.UP) {
-//            myPaddle.setY(myPaddle.getY() - MOVER_SPEED);
+//        if (code == KeyCode.RIGHT) {
+//            myPaddle.moveRight();
 //        }
-//        else if (code == KeyCode.DOWN) {
-//            myPaddle.setY(myPaddle.getY() + MOVER_SPEED);
+//        else if (code == KeyCode.LEFT) {
+//            myPaddle.moveLeft();
 //        }
-        // NEW Java 12 syntax that some prefer (but watch out for the many special cases!)
-        //   https://blog.jetbrains.com/idea/2019/02/java-12-and-intellij-idea/
-        // Note, must set Project Language Level to "13 Preview" under File -> Project Structure
-        // switch (code) {
-        //     case RIGHT -> myMover.setX(myMover.getX() + MOVER_SPEED);
-        //     case LEFT -> myMover.setX(myMover.getX() - MOVER_SPEED);
-        //     case UP -> myMover.setY(myMover.getY() - MOVER_SPEED);
-        //     case DOWN -> myMover.setY(myMover.getY() + MOVER_SPEED);
-        // }
-    }
-
-    // What to do each time a key is pressed
-    private void handleMouseInput (double x, double y) {
-        if (myGrower.contains(x, y)) {
-            myGrower.setScaleX(myGrower.getScaleX() * GROWER_RATE);
-            myGrower.setScaleY(myGrower.getScaleY() * GROWER_RATE);
-        }
     }
 
 
-
-    private static class Bouncer extends ImageView {
-        int DIRECTION_X = 1;
-        int DIRECTION_Y = -1;
-        Bouncer(int startX, int startY, int width, int height, String type, Image image) {
-            super( image );
-
-            setTranslateX(width / 2 - getBoundsInLocal().getWidth() / 2);
-            setTranslateY(height / 2 - getBoundsInLocal().getHeight() / 2 +30);
-        }
-
-        void flipDirectionX(){
-            DIRECTION_X*=-1;
-        }
-        void flipDirectionY(){
-            DIRECTION_Y*=-1;
-        }
-
-        void move (double elapsedTime) {
-            setX(getX() + DIRECTION_X * BOUNCER_SPEED * elapsedTime);
-            setY(getY() + DIRECTION_Y * BOUNCER_SPEED * elapsedTime);
-        }
-    }
-
-    private static class Paddle extends Rectangle {
-        Paddle(int startX, int startY, int width, int height, Color color) {
-            super( width, height, color );
-
-            setTranslateX(startX);
-            setTranslateY(startY);
-        }
-
-        void moveLeft() { setTranslateX(getTranslateX()-5); }
-
-        void moveRight() {
-            setTranslateX(getTranslateX()+5);
-        }
-
-    }
 
     public static void main(String args[]){
         /* Internally calls the init, start method */
