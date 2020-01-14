@@ -94,6 +94,7 @@ public class Main extends Application {
 
         System.out.println("clearing sprites");
     }
+
     private void initLevel(int newLevel) {
         gamePaused = true;
         clearOldSprites();
@@ -162,8 +163,6 @@ public class Main extends Application {
                 break;
         }
     }
-
-
 
     // Change properties of shapes in small ways to animate them over time
     // Note, there are more sophisticated ways to animate shapes, but these simple ways work fine to start
