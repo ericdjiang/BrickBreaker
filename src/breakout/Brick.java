@@ -1,7 +1,10 @@
 package breakout;
 
+import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+
+import java.util.ArrayList;
 
 public class Brick extends Rectangle {
     int strength;
@@ -36,11 +39,19 @@ public class Brick extends Rectangle {
                 setFill(Color.web("#ffcccc"));
                 break;
             default:
-                setFill(Color.AZURE);
+                setFill(Color.BLUE);
                 break;
         }
     }
 
+    void kill(Group root, ArrayList<Brick> myBricks){
+        root.getChildren().remove(this);
+        myBricks.remove(this);
+    }
+
+    boolean isDead(){
+        return strength==0;
+    }
     void update() {
         setX(startX);
         setY(startY);

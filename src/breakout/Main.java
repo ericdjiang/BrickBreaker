@@ -2,12 +2,14 @@ package breakout;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.event.EventHandler;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
@@ -15,6 +17,7 @@ import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -45,8 +48,12 @@ public class Main extends Application {
     private Scene myScene;
     private Bouncer myBouncer;
     private Paddle myPaddle;
+    private int score;
+    private int currentLevel = 1;
+    private boolean gamePaused = true;
 
     private ArrayList <Brick> myBricks = new ArrayList<>();
+    private ArrayList <Bouncer> myBouncers = new ArrayList<>();
     Group root = new Group();
 
 
@@ -68,7 +75,28 @@ public class Main extends Application {
     // Create the game's "scene": what shapes will be in the game and their starting properties
     private Scene setupGame (int width, int height, Paint background) {
         // create one top level collection to organize the things in the scene
+        initLevel(currentLevel);
+        // create a place to see the shapes
+        Scene scene = new Scene(root, width, height, background);
+        // respond to input
+        scene.setOnKeyPressed(e -> handleKeyInput(e.getCode()));
+        scene.setOnMouseMoved(e -> handleMouseMove(e.getX(), e.getY()));
+//        scene.setOnMouseClicked(e -> handleMouseInput(e.getX(), e.getY()));
+        scene.addEventFilter(MouseEvent.MOUSE_CLICKED, handleMouseInput);
+        return scene;
+    }
 
+    private void clearOldSprites(){
+        myBricks.clear();
+        myBouncers.clear();
+
+        root.getChildren().clear();
+
+        System.out.println("clearing sprites");
+    }
+    private void initLevel(int newLevel) {
+        gamePaused = true;
+        clearOldSprites();
         // set up paddle
         int paddleWidth = 100;
         int paddleHeight = 5;
@@ -77,71 +105,115 @@ public class Main extends Application {
                 STAGE_HEIGHT - paddleHeight,
                 paddleWidth,
                 paddleHeight,
-                Color.BLACK);
+                Color.BLACK,
+                3
+        );
 
+        int bouncerWidth = 10;
+        int bouncerHeight = 10;
         // set up bouncer
         myBouncer = new Bouncer(
-                STAGE_WIDTH/2 - paddleWidth/2,
-                STAGE_HEIGHT - paddleHeight - 10,
-                10,
-                10,
+                STAGE_WIDTH/2 - bouncerWidth/2,
+                STAGE_HEIGHT - paddleHeight - bouncerHeight,
+                bouncerWidth,
+                bouncerHeight,
                 Color.PLUM
         );
 
-        for (int i = 0; i < 6; i++) {
-            Brick myBrick = new Brick(
-                STAGE_WIDTH/6*i,
-                    0,
-                    STAGE_WIDTH/6,
-                    50,
-                    Color.BLACK,
-                    new Random().nextInt(3) + 1
-            );
-
-            myBricks.add(myBrick);
-            root.getChildren().add(myBrick);
-        }
-
+        myBouncers.add(myBouncer);
 
         root.getChildren().add(myPaddle);
         root.getChildren().add(myBouncer);
 
-        // create a place to see the shapes
-        Scene scene = new Scene(root, width, height, background);
-        // respond to input
-        scene.setOnKeyPressed(e -> handleKeyInput(e.getCode()));
-        scene.setOnMouseMoved(e -> handleMouseMove(e.getX(), e.getY()));
-        return scene;
+        System.out.println("initing level " + newLevel);
+        switch(newLevel){
+            case 1:
+                for (int i = 0; i < 6; i++) {
+                    Brick myBrick = new Brick(
+                            STAGE_WIDTH/6*i,
+                            0,
+                            STAGE_WIDTH/8,
+                            50,
+                            Color.BLACK,
+                            new Random().nextInt(3) + 1
+                    );
+
+                    myBricks.add(myBrick);
+                    root.getChildren().add(myBrick);
+                }
+                break;
+//            case 2:
+//                for (int i = 0; i < 6; i++) {
+//                    Brick myBrick = new Brick(
+//                            STAGE_WIDTH/6*i,
+//                            0,
+//                            STAGE_WIDTH/8,
+//                            50,
+//                            Color.BLACK,
+//                            new Random().nextInt(3) + 1
+//                    );
+//
+//                    myBricks.add(myBrick);
+//                    root.getChildren().add(myBrick);
+//                }
+            default:
+                System.out.println("done");
+                break;
+        }
     }
+
+
 
     // Change properties of shapes in small ways to animate them over time
     // Note, there are more sophisticated ways to animate shapes, but these simple ways work fine to start
     private void step (double elapsedTime) {
-        myBouncer.checkPaddleCollide(myPaddle);
-        myBouncer.checkWallCollide(STAGE_WIDTH, STAGE_HEIGHT);
+        ArrayList<Bouncer> deadBouncers = new ArrayList<Bouncer>();
+        ArrayList<Brick> deadBricks = new ArrayList<Brick>();
 
-        for (Node child : root.getChildren()) {
-            if(child instanceof Brick) {
-                Brick brick = (Brick) child;
+        for(Bouncer myBouncer: myBouncers) {
+            myBouncer.checkPaddleCollide(myPaddle);
+            myBouncer.checkWallCollide(STAGE_WIDTH);
 
-                myBouncer.checkBrickCollide(brick);
-                brick.changeColor();
+            if(myBouncer.checkBottomCollide(STAGE_HEIGHT)){
+                deadBouncers.add(myBouncer);
+            }
 
-                if(brick.strength==0){
-                    root.getChildren().remove(brick);
+            for (Brick myBrick : myBricks) {
+                myBrick.changeColor();
+                if (myBouncer.checkBrickCollide(myBrick) && myBrick.isDead()) {
+                    deadBricks.add(myBrick);
                 }
             }
         }
 
+        myBouncers.removeAll(deadBouncers);
+        root.getChildren().removeAll(deadBouncers);
 
+        myBricks.removeAll(deadBricks);
+        root.getChildren().removeAll(deadBricks);
 
-//        myBricks.removeIf(Brick -> Brick.strength==0);
+//        System.out.println(root.getChildren().size());
 
+//        for (Node child : root.getChildren()) {
+//            if(child instanceof Brick) {
+//                Brick brick = (Brick) child;
+//
+//                myBouncer.checkBrickCollide(brick, root);
+//                brick.changeColor();
+//
+//                if(brick.strength==0){
+//                    root.getChildren().remove(brick);
+//                }
+//            }
+//        }
+
+        if(myBricks.size()==0){
+            initLevel(currentLevel+1);
+        }
+        else if(myBouncers.size()==0){
+            initLevel(1);
+        }
         myBouncer.move();
-
-        System.out.println(root.getChildren().size());
-
-
     }
 
 
@@ -149,6 +221,10 @@ public class Main extends Application {
     // What to do each time a key is pressed
     private void handleMouseMove ( double x, double y) {
         myPaddle.moveTo(x);
+
+        if(gamePaused){
+            myBouncer.moveTo(x);
+        }
     }
 
     private void handleKeyInput (KeyCode code) {
@@ -160,6 +236,19 @@ public class Main extends Application {
 //        }
     }
 
+
+    EventHandler<MouseEvent> handleMouseInput=new EventHandler<MouseEvent>() {
+        @Override
+        public void handle(MouseEvent event) {
+            if(gamePaused){
+                for( Bouncer bouncer: myBouncers ){
+                    bouncer.start();
+                }
+                gamePaused = false;
+            }
+//            myScene.removeEventHandler(MouseEvent.MOUSE_CLICKED, handleMouseInput);
+        }
+    };
 
 
     public static void main(String args[]){

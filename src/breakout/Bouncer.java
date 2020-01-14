@@ -1,15 +1,20 @@
 package breakout;
 
+import javafx.scene.Group;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Shape;
 
 import java.awt.*;
+import java.util.ArrayList;
 
 public class Bouncer extends Rectangle {
-    int DIRECTION_X = 1;
-    int DIRECTION_Y = 1;
+    int DIRECTION_X = 0;
+    int DIRECTION_Y = 0;
     int vel = 3;
+
+    boolean alive = true;
+
     Bouncer (int startX, int startY, int width, int height, Color color) {
         super( width, height, color);
 
@@ -26,6 +31,10 @@ public class Bouncer extends Rectangle {
         setY(getY() + DIRECTION_Y * vel);
     }
 
+    public void moveTo(double x) {
+        setX(x-getWidth()/2);
+    }
+
     void checkPaddleCollide (Paddle myPaddle){
         double thirdWidth = myPaddle.getWidth()/3;
         double x0 = myPaddle.getX();
@@ -35,9 +44,9 @@ public class Bouncer extends Rectangle {
 
         double bouncerCenterX = getX() + getWidth()/2;
 
-        if(getY()+getHeight() > myPaddle.getY()) {
+        Shape intersection = Shape.intersect(this, myPaddle);
+        if(intersection.getBoundsInLocal().getWidth() != -1 && DIRECTION_Y!=-1) {
             flipDirectionY();
-
             if (x0 <= bouncerCenterX && bouncerCenterX <= x1) {
                 DIRECTION_X = -1;
             } else if (x2 <= bouncerCenterX && bouncerCenterX <= x3) {
@@ -46,16 +55,21 @@ public class Bouncer extends Rectangle {
         }
     }
 
-    void checkWallCollide (int STAGEWIDTH, int STAGEHEIGHT) {
+    void checkWallCollide (int STAGEWIDTH) {
         if(getX() > STAGEWIDTH - getWidth() || getX() < 0){
             flipDirectionX();
         }
-        if(getY() > STAGEHEIGHT - getHeight() || getY() < 0){
+
+        if(getY() < 0){
             flipDirectionY();
         }
     }
 
-    void checkBrickCollide (Brick myBrick) {
+    boolean checkBottomCollide (int STAGEHEIGHT) {
+        return( getY() > STAGEHEIGHT - getHeight() );
+    }
+
+    boolean checkBrickCollide (Brick myBrick) {
         Shape intersection = Shape.intersect(this, myBrick);
 
         double ballRightX = getX() + getWidth();
@@ -67,7 +81,25 @@ public class Bouncer extends Rectangle {
                 flipDirectionY();
             }
             myBrick.decrementStrength();
+            return true;
         }
+
+        return false;
+    }
+
+    void kill(Group root, ArrayList<Bouncer>myBouncers){
+        root.getChildren().remove(this);
+        myBouncers.remove(this);
+    }
+
+    void stop() {
+        DIRECTION_Y = 0;
+        DIRECTION_X = 0;
+    }
+
+    void start() {
+        DIRECTION_X = 1;
+        DIRECTION_Y = -1;
     }
 
     void flipDirectionX(){
