@@ -181,6 +181,7 @@ public class Main extends Application {
     private void clearOldSprites(){
         myBricks.clear();
         myBouncers.clear();
+        myPowerUps.clear();
 
         root.getChildren().clear();
 
@@ -296,26 +297,39 @@ public class Main extends Application {
         for (String index: myPowerUpMap.keySet()){
             if(deadBrickIndices.contains(index)){
                 int indexX = Integer.parseInt(index.substring(0));
-                int indexY = Integer.parseInt(index.substring(0,0));
-                int POWERUPSIZE = 30;
+                int indexY = Integer.parseInt(index.substring(1));
+                int POWERUPSIZE = 10;
                 int POWERUPSPACING = ((STAGE_WIDTH - STAGE_PADDING_X*2)/6-POWERUPSIZE)/2;
 
                 Image image = new Image(this.getClass().getClassLoader().getResourceAsStream(BOUNCER_IMAGE));
                 PowerUp myPowerUp = new PowerUp(
-                        STAGE_PADDING_X + POWERUPSPACING + POWERUPSPACING*indexX,
+                        STAGE_PADDING_X + POWERUPSPACING + indexX*( POWERUPSIZE+ POWERUPSPACING*2),
                         STAGE_PADDING_Y +  brickHeight*indexY,
                         POWERUPSIZE,
                         POWERUPSIZE,
-                        image
+                        image,
+                        myPowerUpMap.get(index)
                 );
                 myPowerUps.add(myPowerUp);
                 root.getChildren().add(myPowerUp);
             }
         }
 
+        ArrayList <PowerUp> deadPowerUps = new ArrayList();
+
         for (PowerUp myPowerUp: myPowerUps) {
+            if(myPowerUp.checkPaddleCollide(myPaddle)){
+                String power = myPowerUp.getPower();
+                System.out.println(power);
+            }
             myPowerUp.moveDown();
+            if(myPowerUp.checkBottomCollide(STAGE_HEIGHT)){
+                deadPowerUps.add(myPowerUp);
+            }
         }
+
+        myPowerUps.removeAll(deadPowerUps);
+        root.getChildren().removeAll(deadPowerUps);
 
 //        System.out.println(root.getChildren().size());
 
@@ -339,8 +353,6 @@ public class Main extends Application {
             initLevel(1);
         }
     }
-
-
 
     // What to do each time a key is pressed
     private void handleMouseMove ( double x, double y) {
