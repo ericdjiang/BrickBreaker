@@ -69,6 +69,12 @@ public class Main extends Application {
     int bouncerWidth = 10;
     int bouncerHeight = 10;
 
+    boolean lasersEnabled = true;
+    int laserInterval = 1; //seconds
+    int framesBetweenLasers = laserInterval * FRAMES_PER_SECOND;
+    int laserCount = 3;
+    int laserFramesLeft = framesBetweenLasers*laserCount;
+
     private ArrayList <Brick> myBricks = new ArrayList<>();
     private ArrayList <Bouncer> myBouncers = new ArrayList<>();
     private ArrayList <String[][]> myBrickLayouts = new ArrayList<>();
@@ -349,7 +355,8 @@ public class Main extends Application {
                         root.getChildren().add(powerBouncer);
                         powerBouncer.start();
                     case "d":
-                        Laser powerLaser = new Laser()
+                        System.out.println("enabling lasers");
+                        enableLasers();
                 }
                 deadPowerUps.add(myPowerUp);
             } else if(myPowerUp.checkBottomCollide(STAGE_HEIGHT)){
@@ -361,6 +368,19 @@ public class Main extends Application {
         myPowerUps.removeAll(deadPowerUps);
         root.getChildren().removeAll(deadPowerUps);
 
+        if(lasersEnabled){
+            if(laserFramesLeft%framesBetweenLasers == 0) {
+                System.out.println("Success");
+            }
+            else {
+                System.out.println(laserFramesLeft%framesBetweenLasers);
+            }
+
+            laserFramesLeft-=1;
+            if(laserFramesLeft == 0) {
+                disableLasers();
+            }
+        }
 //        System.out.println(root.getChildren().size());
 
 //        for (Node child : root.getChildren()) {
@@ -382,6 +402,13 @@ public class Main extends Application {
         else if(myBouncers.size()==0){
             initLevel(1);
         }
+    }
+
+    private void disableLasers() {
+        lasersEnabled = false;
+    }
+    private void enableLasers() {
+        lasersEnabled = true;
     }
 
     // What to do each time a key is pressed

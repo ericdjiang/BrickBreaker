@@ -5,6 +5,7 @@ import javafx.scene.shape.Rectangle;
 
 public class Paddle extends Rectangle {
     int lives;
+
     Paddle(int startX, int startY, int width, int height, Color color, int lives) {
         super( width, height, color );
 
