@@ -17,14 +17,14 @@ import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.lang.module.FindException;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Random;
+import java.util.*;
 
 
 import java.io.File;  // Import the File class
 import java.io.FileNotFoundException;  // Import this class to handle errors
-import java.util.Scanner; // Import the Scanner class to read text files
+
 
 /**
  * @version 1.1 01/12/2020
@@ -50,6 +50,10 @@ public class Main extends Application {
     public static final int GROWER_SIZE = 50;
 
     public static final String BRICK_LAYOUT_FILE = "./brick_layouts.txt";
+    public static final int STAGE_PADDING_X = 50;
+    public static final int STAGE_PADDING_Y = 50;
+    public static final int brickHeight = 30;
+
 
     // some things needed to remember during game
     private Scene myScene;
@@ -62,6 +66,9 @@ public class Main extends Application {
     private ArrayList <Brick> myBricks = new ArrayList<>();
     private ArrayList <Bouncer> myBouncers = new ArrayList<>();
     private ArrayList <String[][]> myBrickLayouts = new ArrayList<>();
+    private ArrayList <PowerUp> myPowerUps = new ArrayList<>();
+
+    private HashMap<String, String> myPowerUpMap = new HashMap<>();
     Group root = new Group();
 
 
@@ -127,27 +134,27 @@ public class Main extends Application {
 
     private void generateBricks(int newLevel){
         int brickSpacing = 10;
-        int STAGE_PADDING_X = 50;
 
         int brickWidth = ( STAGE_WIDTH - STAGE_PADDING_X*2 )/6 - brickSpacing*2;
         int brickX = STAGE_PADDING_X + brickSpacing;
 
-        int STAGE_PADDING_Y = 50;
-        int brickHeight = 30;
+
         int brickY = STAGE_PADDING_Y;
 
-        System.out.println("Brickwidth" + brickWidth);
+
 
         String[][] myBrickLayout = myBrickLayouts.get(newLevel-1);
         for (int row = 0; row < myBrickLayout.length; row++) {
             for (int col = 0; col < myBrickLayout[row].length; col++) {
                 String cell = myBrickLayout[row][col];
 
-                int brickStrength = Integer.valueOf(cell.substring(0));
-                if(cell.length()>1){
+                String index = String.valueOf(row) + String.valueOf(col);
 
+                int brickStrength = Integer.valueOf(cell.substring(0,1));
+                if(cell.length()>1){
+                    String powerUp = cell.substring(1);
+                    myPowerUpMap.put(index, powerUp);
                 }
-                System.out.print(brickStrength);
 
                 if(brickStrength!=0) {
                     Brick myBrick = new Brick(
@@ -156,7 +163,8 @@ public class Main extends Application {
                             brickWidth,
                             brickHeight,
                             Color.BLACK,
-                            brickStrength
+                            brickStrength,
+                            index
                     );
 
                     myBricks.add(myBrick);
@@ -256,6 +264,7 @@ public class Main extends Application {
     private void step (double elapsedTime) {
         ArrayList<Bouncer> deadBouncers = new ArrayList<Bouncer>();
         ArrayList<Brick> deadBricks = new ArrayList<Brick>();
+        HashSet<String> deadBrickIndices = new HashSet<>();
 
         for(Bouncer myBouncer: myBouncers) {
             myBouncer.checkPaddleCollide(myPaddle);
@@ -269,8 +278,10 @@ public class Main extends Application {
 
             for (Brick myBrick : myBricks) {
                 myBrick.changeColor();
+
                 if (myBouncer.checkBrickCollide(myBrick) && myBrick.isDead()) {
                     deadBricks.add(myBrick);
+                    deadBrickIndices.add(myBrick.getIndex());
                 }
             }
         }
@@ -280,6 +291,31 @@ public class Main extends Application {
 
         myBricks.removeAll(deadBricks);
         root.getChildren().removeAll(deadBricks);
+
+
+        for (String index: myPowerUpMap.keySet()){
+            if(deadBrickIndices.contains(index)){
+                int indexX = Integer.parseInt(index.substring(0));
+                int indexY = Integer.parseInt(index.substring(0,0));
+                int POWERUPSIZE = 30;
+                int POWERUPSPACING = ((STAGE_WIDTH - STAGE_PADDING_X*2)/6-POWERUPSIZE)/2;
+
+                Image image = new Image(this.getClass().getClassLoader().getResourceAsStream(BOUNCER_IMAGE));
+                PowerUp myPowerUp = new PowerUp(
+                        STAGE_PADDING_X + POWERUPSPACING + POWERUPSPACING*indexX,
+                        STAGE_PADDING_Y +  brickHeight*indexY,
+                        POWERUPSIZE,
+                        POWERUPSIZE,
+                        image
+                );
+                myPowerUps.add(myPowerUp);
+                root.getChildren().add(myPowerUp);
+            }
+        }
+
+        for (PowerUp myPowerUp: myPowerUps) {
+            myPowerUp.moveDown();
+        }
 
 //        System.out.println(root.getChildren().size());
 
