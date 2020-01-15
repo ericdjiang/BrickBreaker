@@ -69,7 +69,7 @@ public class Main extends Application {
     int bouncerWidth = 10;
     int bouncerHeight = 10;
 
-    boolean lasersEnabled = true;
+    boolean lasersEnabled = false;
     int laserInterval = 1; //seconds
     int framesBetweenLasers = laserInterval * FRAMES_PER_SECOND;
     int laserCount = 3;
@@ -77,8 +77,10 @@ public class Main extends Application {
 
     private ArrayList <Brick> myBricks = new ArrayList<>();
     private ArrayList <Bouncer> myBouncers = new ArrayList<>();
-    private ArrayList <String[][]> myBrickLayouts = new ArrayList<>();
     private ArrayList <PowerUp> myPowerUps = new ArrayList<>();
+    private ArrayList <Laser> myLasers = new ArrayList<>();
+
+    private ArrayList <String[][]> myBrickLayouts = new ArrayList<>();
 
     private HashMap<String, String> myPowerUpMap = new HashMap<>();
     Group root = new Group();
@@ -371,12 +373,26 @@ public class Main extends Application {
         if(lasersEnabled){
             if(laserFramesLeft%framesBetweenLasers == 0) {
                 System.out.println("Success");
+                Laser myLaser = new Laser(
+                        (int) myPaddle.getX(),
+                        STAGE_HEIGHT - paddleHeight - bouncerHeight,
+                        5,
+                        10
+                );
+                myLasers.add(myLaser);
             }
             else {
-                System.out.println(laserFramesLeft%framesBetweenLasers);
+//                System.out.println(laserFramesLeft%framesBetweenLasers);
             }
 
             laserFramesLeft-=1;
+
+            for(Laser myLaser: myLasers){
+                System.out.println("move up");
+                System.out.println(myLaser.getY());
+                myLaser.moveUp();
+            }
+
             if(laserFramesLeft == 0) {
                 disableLasers();
             }
