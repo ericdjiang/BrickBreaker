@@ -31,7 +31,7 @@ import java.util.Scanner; // Import the Scanner class to read text files
  * @author Eric Jiang
  * @netid edj9
  */
-public class Main extends Application {
+public class save extends Application {
     public static final String TITLE = "Bakeout - Eric Jiang";
     public static final int STAGE_WIDTH = 700;
     public static final int STAGE_HEIGHT = 400;
@@ -72,11 +72,11 @@ public class Main extends Application {
         stage.setTitle(TITLE);
         stage.show();
         // attach "game loop" to timeline to play it (basically just calling step() method repeatedly forever)
-        KeyFrame frame = new KeyFrame(Duration.millis(MILLISECOND_DELAY), e -> step(SECOND_DELAY));
-        Timeline animation = new Timeline();
-        animation.setCycleCount(Timeline.INDEFINITE);
-        animation.getKeyFrames().add(frame);
-        animation.play();
+//        KeyFrame frame = new KeyFrame(Duration.millis(MILLISECOND_DELAY), e -> step(SECOND_DELAY));
+//        Timeline animation = new Timeline();
+//        animation.setCycleCount(Timeline.INDEFINITE);
+//        animation.getKeyFrames().add(frame);
+//        animation.play();
 
     }
 
@@ -210,42 +210,42 @@ public class Main extends Application {
 
         System.out.println("initing level " + newLevel);
 
-        generateBricks(newLevel);
-//        switch(newLevel){
-//            case 1:
-//                for (int i = 0; i < 6; i++) {
-//                    Brick myBrick = new Brick(
-//                            STAGE_WIDTH/6*i,
-//                            0,
-//                            STAGE_WIDTH/8,
-//                            50,
-//                            Color.BLACK,
-//                            new Random().nextInt(3) + 1
-//                    );
-//
-//                    myBricks.add(myBrick);
-//                    root.getChildren().add(myBrick);
-//                }
-//                break;
-//            case 2:
-//                for (int i = 0; i < 6; i++) {
-//                    Brick myBrick = new Brick(
-//                            STAGE_WIDTH/6*i,
-//                            0,
-//                            STAGE_WIDTH/8,
-//                            50,
-//                            Color.BLACK,
-//                            new Random().nextInt(3) + 1
-//                    );
-//
-//                    myBricks.add(myBrick);
-//                    root.getChildren().add(myBrick);
-//                }
-//            default:
-//                System.out.println("done");
-//
-//                break;
-//        }
+//        generateBricks(newLevel);
+        switch(newLevel){
+            case 1:
+                for (int i = 0; i < 6; i++) {
+                    Brick myBrick = new Brick(
+                            STAGE_WIDTH/6*i,
+                            0,
+                            STAGE_WIDTH/8,
+                            50,
+                            Color.BLACK,
+                            new Random().nextInt(3) + 1
+                    );
+
+                    myBricks.add(myBrick);
+                    root.getChildren().add(myBrick);
+                }
+                break;
+            case 2:
+                for (int i = 0; i < 6; i++) {
+                    Brick myBrick = new Brick(
+                            STAGE_WIDTH/6*i,
+                            0,
+                            STAGE_WIDTH/8,
+                            50,
+                            Color.BLACK,
+                            new Random().nextInt(3) + 1
+                    );
+
+                    myBricks.add(myBrick);
+                    root.getChildren().add(myBrick);
+                }
+            default:
+                System.out.println("done");
+
+                break;
+        }
     }
 
     // Change properties of shapes in small ways to animate them over time
