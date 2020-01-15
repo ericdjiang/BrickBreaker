@@ -63,6 +63,12 @@ public class Main extends Application {
     private int currentLevel = 1;
     private boolean gamePaused = true;
 
+    int paddleWidth = 100;
+    int PADDLE_WIDTH_WIDE = 200;
+    int paddleHeight = 5;
+    int bouncerWidth = 10;
+    int bouncerHeight = 10;
+
     private ArrayList <Brick> myBricks = new ArrayList<>();
     private ArrayList <Bouncer> myBouncers = new ArrayList<>();
     private ArrayList <String[][]> myBrickLayouts = new ArrayList<>();
@@ -179,6 +185,8 @@ public class Main extends Application {
     }
 
     private void clearOldSprites(){
+        myPowerUpMap.clear();
+
         myBricks.clear();
         myBouncers.clear();
         myPowerUps.clear();
@@ -204,8 +212,6 @@ public class Main extends Application {
                 3
         );
 
-        int bouncerWidth = 10;
-        int bouncerHeight = 10;
         // set up bouncer
         mainBouncer = new Bouncer(
                 STAGE_WIDTH/2 - bouncerWidth/2,
@@ -296,15 +302,16 @@ public class Main extends Application {
 
         for (String index: myPowerUpMap.keySet()){
             if(deadBrickIndices.contains(index)){
-                int indexX = Integer.parseInt(index.substring(0));
-                int indexY = Integer.parseInt(index.substring(1));
+                int rowIndex = Integer.parseInt(index.substring(0,1));
+                int colIndex = Integer.parseInt(index.substring(1));
                 int POWERUPSIZE = 10;
                 int POWERUPSPACING = ((STAGE_WIDTH - STAGE_PADDING_X*2)/6-POWERUPSIZE)/2;
 
                 Image image = new Image(this.getClass().getClassLoader().getResourceAsStream(BOUNCER_IMAGE));
+
                 PowerUp myPowerUp = new PowerUp(
-                        STAGE_PADDING_X + POWERUPSPACING + indexX*( POWERUPSIZE+ POWERUPSPACING*2),
-                        STAGE_PADDING_Y +  brickHeight*indexY,
+                        STAGE_PADDING_X + POWERUPSPACING + colIndex*( POWERUPSIZE+ POWERUPSPACING*2),
+                        STAGE_PADDING_Y +  brickHeight*rowIndex,
                         POWERUPSIZE,
                         POWERUPSIZE,
                         image,
@@ -320,12 +327,35 @@ public class Main extends Application {
         for (PowerUp myPowerUp: myPowerUps) {
             if(myPowerUp.checkPaddleCollide(myPaddle)){
                 String power = myPowerUp.getPower();
-                System.out.println(power);
-            }
-            myPowerUp.moveDown();
-            if(myPowerUp.checkBottomCollide(STAGE_HEIGHT)){
+                switch(power){
+                    case "a":
+                        myPaddle.setWidth(PADDLE_WIDTH_WIDE);
+                    case "b":
+                        for(Bouncer myBouncer: myBouncers){
+                            myBouncer.slowDown();
+                        }
+                        break;
+                    case "c":
+                        System.out.println("new bouncer baby");
+                        Bouncer powerBouncer = new Bouncer(
+                                (int) myPaddle.getX(),
+                                STAGE_HEIGHT - paddleHeight - bouncerHeight,
+                                bouncerWidth,
+                                bouncerHeight,
+                                Color.PLUM
+                        );
+
+                        myBouncers.add(powerBouncer);
+                        root.getChildren().add(powerBouncer);
+                        powerBouncer.start();
+                    case "d":
+                        Laser powerLaser = new Laser()
+                }
+                deadPowerUps.add(myPowerUp);
+            } else if(myPowerUp.checkBottomCollide(STAGE_HEIGHT)){
                 deadPowerUps.add(myPowerUp);
             }
+            myPowerUp.moveDown();
         }
 
         myPowerUps.removeAll(deadPowerUps);

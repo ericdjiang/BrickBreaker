@@ -97,6 +97,10 @@ public class Bouncer extends Rectangle {
         directionX = 0;
     }
 
+    void slowDown() {
+        vel = 3;
+    }
+
     void start() {
         directionX = 1;
         directionY = -1;
