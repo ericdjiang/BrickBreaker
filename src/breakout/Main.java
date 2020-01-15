@@ -38,7 +38,7 @@ public class Main extends Application {
     public static final int FRAMES_PER_SECOND = 60;
     public static final int MILLISECOND_DELAY = 1000 / FRAMES_PER_SECOND;
     public static final double SECOND_DELAY = 1.0 / FRAMES_PER_SECOND;
-    public static final Paint BACKGROUND = Color.AZURE;
+    public static final Paint BACKGROUND = Color.BLACK;
     public static final Paint HIGHLIGHT = Color.OLIVEDRAB;
     public static final String BOUNCER_IMAGE = "ball.gif";
     public static final int BOUNCER_SPEED = 300;
@@ -126,14 +126,14 @@ public class Main extends Application {
     }
 
     private void generateBricks(int newLevel){
-        int brickSpacing = 20;
+        int brickSpacing = 10;
         int STAGE_PADDING_X = 50;
 
-        int brickWidth = ( STAGE_WIDTH - STAGE_PADDING_X )/6 - brickSpacing*2;
+        int brickWidth = ( STAGE_WIDTH - STAGE_PADDING_X*2 )/6 - brickSpacing*2;
         int brickX = STAGE_PADDING_X + brickSpacing;
 
-        int STAGE_PADDING_Y = 30;
-        int brickHeight = 90;
+        int STAGE_PADDING_Y = 50;
+        int brickHeight = 30;
         int brickY = STAGE_PADDING_Y;
 
         System.out.println("Brickwidth" + brickWidth);
@@ -148,21 +148,24 @@ public class Main extends Application {
 
                 }
                 System.out.print(brickStrength);
-                Brick myBrick = new Brick(
-                        brickX,
-                        brickY,
-                        brickWidth,
-                        brickHeight,
-                        Color.BLACK,
-                        brickStrength
-                );
 
-                myBricks.add(myBrick);
-                root.getChildren().add(myBrick);
+                if(brickStrength!=0) {
+                    Brick myBrick = new Brick(
+                            brickX,
+                            brickY,
+                            brickWidth,
+                            brickHeight,
+                            Color.BLACK,
+                            brickStrength
+                    );
 
-                brickX += brickSpacing;
+                    myBricks.add(myBrick);
+                    root.getChildren().add(myBrick);
+                }
+                brickX += brickSpacing*2 + brickWidth;
             }
-            brickY += brickSpacing;
+            brickX = STAGE_PADDING_X + brickSpacing;
+            brickY += brickSpacing + brickHeight;
             System.out.println();
         }
     }
@@ -188,7 +191,7 @@ public class Main extends Application {
                 STAGE_HEIGHT - paddleHeight,
                 paddleWidth,
                 paddleHeight,
-                Color.BLACK,
+                Color.WHITE,
                 3
         );
 
