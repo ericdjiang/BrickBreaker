@@ -136,13 +136,13 @@ public class Main extends Application {
         }
     }
 
-    private void displayStartScreen(){
+    private void displayStartScreen(String splashMsg){
         gamePaused = true;
         clearOldSprites();
 
         resetPlayerLives();
         resetPlayerScore();
-        startScreenTxt = new LevelText(30, 30, "Welcome to BrickBreaker.\nPress to start.", 14);
+        startScreenTxt = new LevelText(30, 30, splashMsg, 14);
         root.getChildren().add(startScreenTxt);
     }
     // Create the game's "scene": what shapes will be in the game and their starting properties
@@ -151,7 +151,7 @@ public class Main extends Application {
         createBrickLayouts();
         // create one top level collection to organize the things in the scene
 //        initLevel(currentLevel);
-        displayStartScreen();
+        displayStartScreen("Welcome to BrickBreaker.\nPress to start.");
         // create a place to see the shapes
         Scene scene = new Scene(root, width, height, background);
         // respond to input
@@ -276,7 +276,7 @@ public class Main extends Application {
         if(currentLevel!=0 && !gamePaused) {
             if(myBricks.size()==0){
                 if(currentLevel==myBrickLayouts.size()) {
-//                displayEndScreen();
+                displayStartScreen("You Won!");
                 }else{
                     currentLevel+=1;
                     initLevel(currentLevel);
@@ -287,7 +287,7 @@ public class Main extends Application {
                 System.out.println("no more bouncers");
                 if(playerLives==0){
                     System.out.println("no more player lives");
-                    displayStartScreen();
+                    displayStartScreen("You Lose\nPress 1 to try again.");
                 } else {
                     //if the player died but still has lives
                     playerLives-=1;
@@ -300,8 +300,6 @@ public class Main extends Application {
                 }
 
             }
-
-
 
         ArrayList<Bouncer> deadBouncers = new ArrayList<Bouncer>();
         ArrayList<Brick> deadBricks = new ArrayList<Brick>();
@@ -517,6 +515,12 @@ public class Main extends Application {
             initLevel(currentLevel);
             resetPlayerScore();
             resetPlayerLives();
+        } else if (code == KeyCode.L){
+            playerLives+=1;
+        }else if (code == KeyCode.S){
+            for(Bouncer myBouncer: myBouncers){
+                myBouncer.slowDown();
+            }
         }
 
 //        if (code == KeyCode.RIGHT) {
