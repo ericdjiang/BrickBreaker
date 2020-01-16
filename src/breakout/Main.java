@@ -20,7 +20,8 @@ import javafx.util.Duration;
 import java.lang.module.FindException;
 import java.lang.reflect.Array;
 import java.util.*;
-
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 
 import java.io.File;  // Import the File class
 import java.io.FileNotFoundException;  // Import this class to handle errors
@@ -85,6 +86,8 @@ public class Main extends Application {
     private HashMap<String, String> myPowerUpMap = new HashMap<>();
     Group root = new Group();
 
+    int playerScore = 0;
+    int playerLives = 3;
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -156,7 +159,6 @@ public class Main extends Application {
         int brickY = STAGE_PADDING_Y;
 
 
-
         String[][] myBrickLayout = myBrickLayouts.get(newLevel-1);
         for (int row = 0; row < myBrickLayout.length; row++) {
             for (int col = 0; col < myBrickLayout[row].length; col++) {
@@ -198,6 +200,10 @@ public class Main extends Application {
         myBricks.clear();
         myBouncers.clear();
         myPowerUps.clear();
+        myLasers.clear();
+
+        disableLasers();
+        resetLaserFrames();
 
         root.getChildren().clear();
 
@@ -208,9 +214,27 @@ public class Main extends Application {
     private void initLevel(int newLevel) {
         gamePaused = true;
         clearOldSprites();
+
+        // clear score
+        if (newLevel == 1){
+            playerScore = 0;
+        }
+
+        // setup scoreboard
+        Text currLvlTxt = new LevelText(20, 20, "Lvl " + currentLevel, 14);
+
+        Text scoreText = new LevelText(20, 35, "Score: "+ playerScore, 14);
+
+        Text lifeText = new LevelText(STAGE_WIDTH-60, 20, "Lives: " + playerLives, 14);
+
+
+        root.getChildren().add(currLvlTxt);
+        root.getChildren().add(scoreText);
+        root.getChildren().add(lifeText);
+
+
         // set up paddle
-        int paddleWidth = 100;
-        int paddleHeight = 5;
+
         myPaddle = new Paddle(
                 STAGE_WIDTH/2 - paddleWidth/2,
                 STAGE_HEIGHT - paddleHeight,
@@ -279,6 +303,8 @@ public class Main extends Application {
     private void step (double elapsedTime) {
         ArrayList<Bouncer> deadBouncers = new ArrayList<Bouncer>();
         ArrayList<Brick> deadBricks = new ArrayList<Brick>();
+        ArrayList<Laser> deadLasers = new ArrayList<Laser>();
+
         HashSet<String> deadBrickIndices = new HashSet<>();
 
         for(Bouncer myBouncer: myBouncers) {
@@ -294,10 +320,24 @@ public class Main extends Application {
             for (Brick myBrick : myBricks) {
                 myBrick.changeColor();
 
-                if (myBouncer.checkBrickCollide(myBrick) && myBrick.isDead()) {
+                if( myBouncer.checkBrickCollide(myBrick) ) {
+                    myBrick.decrementStrength();
+                    playerScore+=myBrick.brickScore;
+                }
+
+                for(Laser myLaser: myLasers){
+                    if (myBrick.checkLaserCollide(myLaser)){
+                        myBrick.decrementStrength();
+                        deadLasers.add(myLaser);
+                        playerScore+=myBrick.brickScore;
+                    }
+                }
+
+                if (myBrick.isDead()) {
                     deadBricks.add(myBrick);
                     deadBrickIndices.add(myBrick.getIndex());
                 }
+
             }
         }
 
@@ -306,6 +346,9 @@ public class Main extends Application {
 
         myBricks.removeAll(deadBricks);
         root.getChildren().removeAll(deadBricks);
+
+        myLasers.removeAll(deadLasers);
+        root.getChildren().removeAll(deadLasers);
 
 
         for (String index: myPowerUpMap.keySet()){
@@ -374,12 +417,13 @@ public class Main extends Application {
             if(laserFramesLeft%framesBetweenLasers == 0) {
                 System.out.println("Success");
                 Laser myLaser = new Laser(
-                        (int) myPaddle.getX(),
-                        STAGE_HEIGHT - paddleHeight - bouncerHeight,
+                        (int) (myPaddle.getX() + myPaddle.getWidth()/2 - 5/2),
+                        STAGE_HEIGHT - paddleHeight - 10,
                         5,
                         10
                 );
                 myLasers.add(myLaser);
+                root.getChildren().add(myLaser);
             }
             else {
 //                System.out.println(laserFramesLeft%framesBetweenLasers);
@@ -387,15 +431,18 @@ public class Main extends Application {
 
             laserFramesLeft-=1;
 
-            for(Laser myLaser: myLasers){
-                System.out.println("move up");
-                System.out.println(myLaser.getY());
-                myLaser.moveUp();
-            }
+//             System.out.println(myLasers.get(0).getY());
+//                myLasers.get(0).moveUp();
 
             if(laserFramesLeft == 0) {
                 disableLasers();
             }
+        }
+
+        for(Laser myLaser: myLasers){
+            System.out.println("move up");
+            System.out.println(myLaser.getY());
+            myLaser.moveUp();
         }
 //        System.out.println(root.getChildren().size());
 
@@ -416,7 +463,12 @@ public class Main extends Application {
             initLevel(currentLevel+1);
         }
         else if(myBouncers.size()==0){
-            initLevel(1);
+            if(playerLives==0){
+                initLevel(1);
+            } else {
+                playerLives-=1;
+            }
+
         }
     }
 
@@ -425,6 +477,10 @@ public class Main extends Application {
     }
     private void enableLasers() {
         lasersEnabled = true;
+    }
+
+    private void resetLaserFrames () {
+        laserFramesLeft = framesBetweenLasers*laserCount;
     }
 
     // What to do each time a key is pressed

@@ -80,7 +80,6 @@ public class Bouncer extends Rectangle {
             } else {
                 flipDirectionY();
             }
-            myBrick.decrementStrength();
             return true;
         }
 

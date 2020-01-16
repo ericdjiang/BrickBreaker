@@ -13,6 +13,9 @@ public class Laser extends Rectangle {
 
     Laser(int startX, int startY, int width, int height) {
         super(width, height, Color.BLUEVIOLET);
+
+        setX(startX);
+        setY(startY);
     }
 
     public void moveUp(){

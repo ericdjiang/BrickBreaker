@@ -3,12 +3,14 @@ package breakout;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
 
 public class Brick extends Rectangle {
     String index;
+    int brickScore;
     int strength;
     double startX;
     double startY;
@@ -18,6 +20,7 @@ public class Brick extends Rectangle {
 
         this.index = index;
         this.strength = strength;
+        this.brickScore = strength;
 
         this.startX = startX;
         this.startY = startY;
@@ -50,6 +53,11 @@ public class Brick extends Rectangle {
     void kill(Group root, ArrayList<Brick> myBricks){
         root.getChildren().remove(this);
         myBricks.remove(this);
+    }
+
+    boolean checkLaserCollide (Laser myLaser) {
+        Shape intersection = Shape.intersect(this, myLaser);
+        return (intersection.getBoundsInLocal().getWidth() != -1);
     }
 
     String getIndex(){
