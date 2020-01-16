@@ -25,6 +25,7 @@ import javafx.scene.text.Text;
 
 import java.io.File;  // Import the File class
 import java.io.FileNotFoundException;  // Import this class to handle errors
+import java.util.logging.Level;
 
 
 /**
@@ -88,10 +89,16 @@ public class Main extends Application {
 
     int playerScore = 0;
     int playerLives = 3;
+    LevelText currLvlTxt;
+    LevelText scoreText;
+    LevelText lifeText;
+
 
     @Override
     public void start(Stage stage) throws Exception {
         myScene = setupGame(STAGE_WIDTH, STAGE_HEIGHT, BACKGROUND);
+        myScene.addEventFilter(MouseEvent.MOUSE_CLICKED, handleMouseInput);
+
         stage.setScene(myScene);
         stage.setTitle(TITLE);
         stage.show();
@@ -145,7 +152,6 @@ public class Main extends Application {
         scene.setOnKeyPressed(e -> handleKeyInput(e.getCode()));
         scene.setOnMouseMoved(e -> handleMouseMove(e.getX(), e.getY()));
 //        scene.setOnMouseClicked(e -> handleMouseInput(e.getX(), e.getY()));
-        scene.addEventFilter(MouseEvent.MOUSE_CLICKED, handleMouseInput);
         return scene;
     }
 
@@ -211,21 +217,28 @@ public class Main extends Application {
     }
 
 
+    private void resetPlayerLives() {
+        playerLives = 3;
+    }
+    private void resetPlayerScore() {
+        playerScore = 0;
+    }
     private void initLevel(int newLevel) {
         gamePaused = true;
         clearOldSprites();
 
         // clear score
         if (newLevel == 1){
-            playerScore = 0;
+            if(playerLives==0) {
+                resetPlayerScore();
+                resetPlayerLives();
+            }
         }
 
         // setup scoreboard
-        Text currLvlTxt = new LevelText(20, 20, "Lvl " + currentLevel, 14);
-
-        Text scoreText = new LevelText(20, 35, "Score: "+ playerScore, 14);
-
-        Text lifeText = new LevelText(STAGE_WIDTH-60, 20, "Lives: " + playerLives, 14);
+        currLvlTxt = new LevelText(20, 20, "Lvl " + currentLevel, 14);
+        scoreText = new LevelText(20, 35, "Score: "+ playerScore, 14);
+        lifeText = new LevelText(STAGE_WIDTH-60, 20, "Lives: " + playerLives, 14);
 
 
         root.getChildren().add(currLvlTxt);
@@ -234,29 +247,17 @@ public class Main extends Application {
 
 
         // set up paddle
-
         myPaddle = new Paddle(
                 STAGE_WIDTH/2 - paddleWidth/2,
                 STAGE_HEIGHT - paddleHeight,
                 paddleWidth,
                 paddleHeight,
-                Color.WHITE,
-                3
+                Color.WHITE
         );
-
-        // set up bouncer
-        mainBouncer = new Bouncer(
-                STAGE_WIDTH/2 - bouncerWidth/2,
-                STAGE_HEIGHT - paddleHeight - bouncerHeight,
-                bouncerWidth,
-                bouncerHeight,
-                Color.PLUM
-        );
-
-        myBouncers.add(mainBouncer);
 
         root.getChildren().add(myPaddle);
-        root.getChildren().add(mainBouncer);
+
+        initMainBouncer();
 
         System.out.println("initing level " + newLevel);
 
@@ -322,7 +323,6 @@ public class Main extends Application {
 
                 if( myBouncer.checkBrickCollide(myBrick) ) {
                     myBrick.decrementStrength();
-                    playerScore+=myBrick.brickScore;
                 }
 
                 for(Laser myLaser: myLasers){
@@ -334,6 +334,7 @@ public class Main extends Application {
                 }
 
                 if (myBrick.isDead()) {
+                    playerScore+=myBrick.brickScore;
                     deadBricks.add(myBrick);
                     deadBrickIndices.add(myBrick.getIndex());
                 }
@@ -466,10 +467,40 @@ public class Main extends Application {
             if(playerLives==0){
                 initLevel(1);
             } else {
+                //if the player died but still has lives
                 playerLives-=1;
+                initMainBouncer();
+                resetPaddlePosition();
+                gamePaused = true;
+                myScene.addEventFilter(MouseEvent.MOUSE_CLICKED, handleMouseInput);
+
+                System.out.println("new player lives"+playerLives);
             }
 
         }
+
+        updateLevelText();
+    }
+
+    private void initMainBouncer(){
+        mainBouncer = new Bouncer(
+                STAGE_WIDTH/2 - bouncerWidth/2,
+                STAGE_HEIGHT - paddleHeight - bouncerHeight,
+                bouncerWidth,
+                bouncerHeight,
+                Color.PLUM
+        );
+
+        myBouncers.add(mainBouncer);
+        root.getChildren().add(mainBouncer);
+    }
+    private void resetPaddlePosition(){
+        myPaddle.setX(STAGE_WIDTH/2 - paddleWidth/2);
+    }
+    private void updateLevelText(){
+        currLvlTxt.setText("Lvl" + currentLevel);
+        scoreText.setText("Score: "+ playerScore);
+        lifeText.setText("Lives: "+playerLives);
     }
 
     private void disableLasers() {
