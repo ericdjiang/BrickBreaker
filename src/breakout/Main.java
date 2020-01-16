@@ -1,31 +1,25 @@
 package breakout;
+
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import java.lang.module.FindException;
-import java.lang.reflect.Array;
-import java.util.*;
-import javafx.scene.text.FontWeight;
-import javafx.scene.text.Text;
-
-import java.io.File;  // Import the File class
-import java.io.FileNotFoundException;  // Import this class to handle errors
-import java.util.logging.Level;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Scanner;
 
 
 /**
@@ -62,7 +56,7 @@ public class Main extends Application {
     private Bouncer mainBouncer;
     private Paddle myPaddle;
     private int score;
-    private int currentLevel = 1;
+    private int currentLevel = 0;
     private boolean gamePaused = true;
 
     int paddleWidth = 100;
@@ -93,11 +87,12 @@ public class Main extends Application {
     LevelText scoreText;
     LevelText lifeText;
 
+    LevelText startScreenTxt;
+
 
     @Override
     public void start(Stage stage) throws Exception {
         myScene = setupGame(STAGE_WIDTH, STAGE_HEIGHT, BACKGROUND);
-        myScene.addEventFilter(MouseEvent.MOUSE_CLICKED, handleMouseInput);
 
         stage.setScene(myScene);
         stage.setTitle(TITLE);
@@ -114,7 +109,7 @@ public class Main extends Application {
     private void createBrickLayouts(){
         try {
             File file = new File(
-                    getClass().getClassLoader().getResource("brick_layouts.txt").getFile()
+                getClass().getClassLoader().getResource("brick_layouts.txt").getFile()
             );
             Scanner myReader = new Scanner(file);
 
@@ -140,17 +135,28 @@ public class Main extends Application {
             e.printStackTrace();
         }
     }
+
+    private void displayStartScreen(){
+        gamePaused = true;
+        clearOldSprites();
+
+        resetPlayerLives();
+        resetPlayerScore();
+        startScreenTxt = new LevelText(30, 30, "Welcome to BrickBreaker.\nPress to start.", 14);
+        root.getChildren().add(startScreenTxt);
+    }
     // Create the game's "scene": what shapes will be in the game and their starting properties
     private Scene setupGame (int width, int height, Paint background) {
         // read in file with brick layouts
         createBrickLayouts();
         // create one top level collection to organize the things in the scene
-        initLevel(currentLevel);
+//        initLevel(currentLevel);
+        displayStartScreen();
         // create a place to see the shapes
         Scene scene = new Scene(root, width, height, background);
         // respond to input
         scene.setOnKeyPressed(e -> handleKeyInput(e.getCode()));
-        scene.setOnMouseMoved(e -> handleMouseMove(e.getX(), e.getY()));
+
 //        scene.setOnMouseClicked(e -> handleMouseInput(e.getX(), e.getY()));
         return scene;
     }
@@ -196,8 +202,9 @@ public class Main extends Application {
             }
             brickX = STAGE_PADDING_X + brickSpacing;
             brickY += brickSpacing + brickHeight;
-            System.out.println();
         }
+
+        System.out.println("BRICKS GENREATED");
     }
 
     private void clearOldSprites(){
@@ -224,16 +231,11 @@ public class Main extends Application {
         playerScore = 0;
     }
     private void initLevel(int newLevel) {
+        myScene.setOnMouseMoved(e -> handleMouseMove(e.getX(), e.getY()));
+        myScene.addEventFilter(MouseEvent.MOUSE_CLICKED, handleMouseInput);
+
         gamePaused = true;
         clearOldSprites();
-
-        // clear score
-        if (newLevel == 1){
-            if(playerLives==0) {
-                resetPlayerScore();
-                resetPlayerLives();
-            }
-        }
 
         // setup scoreboard
         currLvlTxt = new LevelText(20, 20, "Lvl " + currentLevel, 14);
@@ -262,46 +264,45 @@ public class Main extends Application {
         System.out.println("initing level " + newLevel);
 
         generateBricks(newLevel);
-//        switch(newLevel){
-//            case 1:
-//                for (int i = 0; i < 6; i++) {
-//                    Brick myBrick = new Brick(
-//                            STAGE_WIDTH/6*i,
-//                            0,
-//                            STAGE_WIDTH/8,
-//                            50,
-//                            Color.BLACK,
-//                            new Random().nextInt(3) + 1
-//                    );
-//
-//                    myBricks.add(myBrick);
-//                    root.getChildren().add(myBrick);
-//                }
-//                break;
-//            case 2:
-//                for (int i = 0; i < 6; i++) {
-//                    Brick myBrick = new Brick(
-//                            STAGE_WIDTH/6*i,
-//                            0,
-//                            STAGE_WIDTH/8,
-//                            50,
-//                            Color.BLACK,
-//                            new Random().nextInt(3) + 1
-//                    );
-//
-//                    myBricks.add(myBrick);
-//                    root.getChildren().add(myBrick);
-//                }
-//            default:
-//                System.out.println("done");
-//
-//                break;
-//        }
+
     }
 
     // Change properties of shapes in small ways to animate them over time
     // Note, there are more sophisticated ways to animate shapes, but these simple ways work fine to start
     private void step (double elapsedTime) {
+        if(currentLevel!=0 && currentLevel!=4)
+        updateLevelText();
+
+        if(currentLevel!=0 && !gamePaused) {
+            if(myBricks.size()==0){
+                if(currentLevel==myBrickLayouts.size()) {
+//                displayEndScreen();
+                }else{
+                    currentLevel+=1;
+                    initLevel(currentLevel);
+                }
+            }
+
+            else if(myBouncers.size()==0){
+                System.out.println("no more bouncers");
+                if(playerLives==0){
+                    System.out.println("no more player lives");
+                    displayStartScreen();
+                } else {
+                    //if the player died but still has lives
+                    playerLives-=1;
+                    initMainBouncer();
+                    resetPaddlePosition();
+                    gamePaused = true;
+                    myScene.addEventFilter(MouseEvent.MOUSE_CLICKED, handleMouseInput);
+
+                    System.out.println("new player lives"+playerLives);
+                }
+
+            }
+
+
+
         ArrayList<Bouncer> deadBouncers = new ArrayList<Bouncer>();
         ArrayList<Brick> deadBricks = new ArrayList<Brick>();
         ArrayList<Laser> deadLasers = new ArrayList<Laser>();
@@ -441,8 +442,6 @@ public class Main extends Application {
         }
 
         for(Laser myLaser: myLasers){
-            System.out.println("move up");
-            System.out.println(myLaser.getY());
             myLaser.moveUp();
         }
 //        System.out.println(root.getChildren().size());
@@ -460,26 +459,9 @@ public class Main extends Application {
 //            }
 //        }
 
-        if(myBricks.size()==0){
-            initLevel(currentLevel+1);
-        }
-        else if(myBouncers.size()==0){
-            if(playerLives==0){
-                initLevel(1);
-            } else {
-                //if the player died but still has lives
-                playerLives-=1;
-                initMainBouncer();
-                resetPaddlePosition();
-                gamePaused = true;
-                myScene.addEventFilter(MouseEvent.MOUSE_CLICKED, handleMouseInput);
-
-                System.out.println("new player lives"+playerLives);
-            }
 
         }
 
-        updateLevelText();
     }
 
     private void initMainBouncer(){
@@ -524,6 +506,19 @@ public class Main extends Application {
     }
 
     private void handleKeyInput (KeyCode code) {
+        if(code.isDigitKey()){
+            if(code == KeyCode.DIGIT1){
+                currentLevel=1;
+            } else if(code == KeyCode.DIGIT2){
+                currentLevel=2;
+            } else if(code == KeyCode.DIGIT3){
+                currentLevel=3;
+            }
+            initLevel(currentLevel);
+            resetPlayerScore();
+            resetPlayerLives();
+        }
+
 //        if (code == KeyCode.RIGHT) {
 //            myPaddle.moveRight();
 //        }
@@ -536,13 +531,13 @@ public class Main extends Application {
     EventHandler<MouseEvent> handleMouseInput=new EventHandler<MouseEvent>() {
         @Override
         public void handle(MouseEvent event) {
-            if(gamePaused){
+            if(gamePaused ){
                 for( Bouncer bouncer: myBouncers ){
                     bouncer.start();
                 }
                 gamePaused = false;
             }
-//            myScene.removeEventHandler(MouseEvent.MOUSE_CLICKED, handleMouseInput);
+            myScene.removeEventHandler(MouseEvent.MOUSE_CLICKED, handleMouseInput);
         }
     };
 

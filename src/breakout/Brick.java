@@ -27,6 +27,7 @@ public class Brick extends Rectangle {
 
         setX(startX);
         setY(startY);
+        changeColor();
     }
 
     void decrementStrength() {
