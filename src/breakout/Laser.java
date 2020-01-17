@@ -17,7 +17,9 @@ public class Laser extends Rectangle {
         setX(startX);
         setY(startY);
     }
-
+    public boolean checkTopCollide (int STAGE_MARGIN) {
+        return(getY() < STAGE_MARGIN);
+    }
     public void moveUp(){
         setY(getY()+vel);
     }

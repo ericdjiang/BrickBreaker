@@ -55,12 +55,12 @@ public class Bouncer extends Rectangle {
         }
     }
 
-    void checkWallCollide (int STAGEWIDTH) {
+    void checkWallCollide (int STAGEWIDTH, int STAGE_MARGIN) {
         if(getX() > STAGEWIDTH - getWidth() || getX() < 0){
             flipDirectionX();
         }
 
-        if(getY() < 0){
+        if(getY() < STAGE_MARGIN){
             flipDirectionY();
         }
     }

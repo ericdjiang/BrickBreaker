@@ -30,7 +30,8 @@ import java.util.Scanner;
 public class Main extends Application {
     public static final String TITLE = "Bakeout - Eric Jiang";
     public static final int STAGE_WIDTH = 700;
-    public static final int STAGE_HEIGHT = 400;
+    public static final int STAGE_MARGIN = 50;
+    public static final int STAGE_HEIGHT = 400+STAGE_MARGIN;
     public static final int FRAMES_PER_SECOND = 60;
     public static final int MILLISECOND_DELAY = 1000 / FRAMES_PER_SECOND;
     public static final double SECOND_DELAY = 1.0 / FRAMES_PER_SECOND;
@@ -88,7 +89,7 @@ public class Main extends Application {
     LevelText lifeText;
 
     LevelText startScreenTxt;
-
+    LevelText newLevelText;
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -142,7 +143,7 @@ public class Main extends Application {
 
         resetPlayerLives();
         resetPlayerScore();
-        startScreenTxt = new LevelText(30, 30, splashMsg, 14);
+        startScreenTxt = new LevelText(0, 30, STAGE_WIDTH,splashMsg, 14);
         root.getChildren().add(startScreenTxt);
     }
     // Create the game's "scene": what shapes will be in the game and their starting properties
@@ -168,7 +169,7 @@ public class Main extends Application {
         int brickX = STAGE_PADDING_X + brickSpacing;
 
 
-        int brickY = STAGE_PADDING_Y;
+        int brickY = STAGE_MARGIN+STAGE_PADDING_Y;
 
 
         String[][] myBrickLayout = myBrickLayouts.get(newLevel-1);
@@ -230,6 +231,19 @@ public class Main extends Application {
     private void resetPlayerScore() {
         playerScore = 0;
     }
+
+    private void showNewLevelText(){
+        newLevelText = new LevelText(
+                (STAGE_WIDTH- 300)/2,
+                300,
+                300,
+                "Level: " + currentLevel + "\nLeft click to start",
+                20
+        );
+
+        root.getChildren().add(newLevelText);
+    }
+
     private void initLevel(int newLevel) {
         myScene.setOnMouseMoved(e -> handleMouseMove(e.getX(), e.getY()));
         myScene.addEventFilter(MouseEvent.MOUSE_CLICKED, handleMouseInput);
@@ -237,10 +251,15 @@ public class Main extends Application {
         gamePaused = true;
         clearOldSprites();
 
+        showNewLevelText();
+
+        int TEXT_WIDTH = 100;
+        int TEXT_MARGINX = 0;
+//        int TEXT_MARGINX = 20;
         // setup scoreboard
-        currLvlTxt = new LevelText(20, 20, "Lvl " + currentLevel, 14);
-        scoreText = new LevelText(20, 35, "Score: "+ playerScore, 14);
-        lifeText = new LevelText(STAGE_WIDTH-60, 20, "Lives: " + playerLives, 14);
+        currLvlTxt = new LevelText(TEXT_MARGINX, 20, TEXT_WIDTH,"Lvl " + currentLevel, 14);
+        scoreText = new LevelText((STAGE_WIDTH- TEXT_WIDTH)/2, 20, TEXT_WIDTH,"Score: "+ playerScore, 14);
+        lifeText = new LevelText(STAGE_WIDTH-TEXT_WIDTH, 20, TEXT_WIDTH, "Lives: " + playerLives, 14);
 
 
         root.getChildren().add(currLvlTxt);
@@ -309,7 +328,7 @@ public class Main extends Application {
 
         for(Bouncer myBouncer: myBouncers) {
             myBouncer.checkPaddleCollide(myPaddle);
-            myBouncer.checkWallCollide(STAGE_WIDTH);
+            myBouncer.checkWallCollide(STAGE_WIDTH, STAGE_MARGIN);
 
             if(myBouncer.checkBottomCollide(STAGE_HEIGHT)){
                 deadBouncers.add(myBouncer);
@@ -362,7 +381,7 @@ public class Main extends Application {
 
                 PowerUp myPowerUp = new PowerUp(
                         STAGE_PADDING_X + POWERUPSPACING + colIndex*( POWERUPSIZE+ POWERUPSPACING*2),
-                        STAGE_PADDING_Y +  brickHeight*rowIndex,
+                        STAGE_MARGIN+STAGE_PADDING_Y +  brickHeight*rowIndex,
                         POWERUPSIZE,
                         POWERUPSIZE,
                         image,
@@ -441,7 +460,13 @@ public class Main extends Application {
 
         for(Laser myLaser: myLasers){
             myLaser.moveUp();
+            if(myLaser.checkTopCollide(STAGE_MARGIN)){
+                deadLasers.add(myLaser);
+            }
         }
+
+        myLasers.removeAll(deadLasers);
+        root.getChildren().removeAll(deadLasers);
 //        System.out.println(root.getChildren().size());
 
 //        for (Node child : root.getChildren()) {
@@ -478,8 +503,8 @@ public class Main extends Application {
         myPaddle.setX(STAGE_WIDTH/2 - paddleWidth/2);
     }
     private void updateLevelText(){
-        currLvlTxt.setText("Lvl" + currentLevel);
         scoreText.setText("Score: "+ playerScore);
+        currLvlTxt.setText("Lvl " + currentLevel);
         lifeText.setText("Lives: "+playerLives);
     }
 
@@ -535,7 +560,8 @@ public class Main extends Application {
     EventHandler<MouseEvent> handleMouseInput=new EventHandler<MouseEvent>() {
         @Override
         public void handle(MouseEvent event) {
-            if(gamePaused ){
+            if(gamePaused){
+                root.getChildren().remove(newLevelText);
                 for( Bouncer bouncer: myBouncers ){
                     bouncer.start();
                 }
