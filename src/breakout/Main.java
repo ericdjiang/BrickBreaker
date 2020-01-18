@@ -247,24 +247,16 @@ public class Main extends Application {
 
         pauseGame();
         clearOldSprites();
-
         showNewLevelText();
 
-        int TEXT_WIDTH = 100;
-        int TEXT_MARGINX = 0;
-//        int TEXT_MARGINX = 20;
-        // setup scoreboard
-        currLvlTxt = new LevelText(TEXT_MARGINX, 20, TEXT_WIDTH,"Lvl " + currentLevel, 14);
-        scoreText = new LevelText((STAGE_WIDTH- TEXT_WIDTH)/2, 20, TEXT_WIDTH,"Score: "+ playerScore, 14);
-        lifeText = new LevelText(STAGE_WIDTH-TEXT_WIDTH, 20, TEXT_WIDTH, "Lives: " + playerLives, 14);
+        setupStatusDisplay();
 
+        initPaddle();
+        initMainBouncer();
+        generateBricks(newLevel);
+    }
 
-        root.getChildren().add(currLvlTxt);
-        root.getChildren().add(scoreText);
-        root.getChildren().add(lifeText);
-
-
-        // set up paddle
+    private void initPaddle() {
         myPaddle = new Paddle(
                 STAGE_WIDTH/2 - paddleWidth/2,
                 STAGE_HEIGHT - paddleHeight,
@@ -274,13 +266,21 @@ public class Main extends Application {
         );
 
         root.getChildren().add(myPaddle);
+    }
 
-        initMainBouncer();
+    private void setupStatusDisplay() {
+        int TEXT_WIDTH = 100;
+        int TEXT_MARGINX = 0;
 
-        System.out.println("initing level " + newLevel);
+        // setup scoreboard
+        currLvlTxt = new LevelText(TEXT_MARGINX, 20, TEXT_WIDTH,"Lvl " + currentLevel, 14);
+        scoreText = new LevelText((STAGE_WIDTH- TEXT_WIDTH)/2, 20, TEXT_WIDTH,"Score: "+ playerScore, 14);
+        lifeText = new LevelText(STAGE_WIDTH-TEXT_WIDTH, 20, TEXT_WIDTH, "Lives: " + playerLives, 14);
 
-        generateBricks(newLevel);
 
+        root.getChildren().add(currLvlTxt);
+        root.getChildren().add(scoreText);
+        root.getChildren().add(lifeText);
     }
 
     // Change properties of shapes in small ways to animate them over time
