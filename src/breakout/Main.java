@@ -99,6 +99,9 @@ public class Main extends Application {
     private LevelText startScreenTxt;
     private LevelText newLevelText;
 
+    int POWERUPSIZE = 10;
+    int POWERUPSPACING = ((STAGE_WIDTH - STAGE_PADDING_X * 2) / 6 - POWERUPSIZE) / 2;
+
     @Override
     public void start(Stage stage) throws Exception {
         myScene = setupGame(STAGE_WIDTH, STAGE_HEIGHT, BACKGROUND);
@@ -183,15 +186,8 @@ public class Main extends Application {
         String[][] myBrickLayout = myBrickLayouts.get(newLevel - 1); //get brick layout corresponding to current level
         for (int row = 0; row < myBrickLayout.length; row++) {
             for (int col = 0; col < myBrickLayout[row].length; col++) {
-                String cell = myBrickLayout[row][col];
-                String index = String.valueOf(row) + col;
-                int brickStrength = Integer.valueOf(cell.substring(0, 1));
-                if (cell.length() > 1) { // if brick contains a powerup
-                    storePowerUp(cell, index);
-                }
-                if (brickStrength != 0) {
-                    generateBrick(brickX, brickY, index, brickStrength);
-                }
+                parseCellContents(brickX, brickY, myBrickLayout[row][col], row, col);
+
                 brickX += brickSpacing * 2 + brickWidth;
             }
             brickX = STAGE_PADDING_X + brickSpacing;
@@ -199,12 +195,25 @@ public class Main extends Application {
         }
     }
 
+    private void parseCellContents(int brickX, int brickY, String cell, int row, int col) {
+        String index = String.valueOf(row) + col;
+        int brickStrength = Integer.valueOf(cell.substring(0, 1));
+
+        if (cell.length() > 1) { // if brick contains a powerup
+            storePowerUp(cell, index);
+        }
+        if (brickStrength != 0) {
+            initBrick(brickX, brickY, index, brickStrength);
+        }
+    }
+
+
     private void storePowerUp(String cell, String index) {
         String powerUp = cell.substring(1);
         myPowerUpMap.put(index, powerUp);
     }
 
-    private void generateBrick(int brickX, int brickY, String index, int brickStrength) {
+    private void initBrick(int brickX, int brickY, String index, int brickStrength) {
         Brick myBrick = new Brick(brickX, brickY, brickWidth, brickHeight, Color.BLACK, brickStrength, index);
         myBricks.add(myBrick);
         root.getChildren().add(myBrick);
@@ -393,15 +402,7 @@ public class Main extends Application {
     private void shootLasers() {
         if (lasersEnabled) {
             if (laserFramesLeft % framesBetweenLasers == 0) {
-                System.out.println("Success");
-                Laser myLaser = new Laser(
-                        (int)(myPaddle1.getX() + myPaddle1.getWidth() / 2 - 5 / 2),
-                        STAGE_HEIGHT - paddleHeight - 10,
-                        5,
-                        10
-                );
-                myLasers.add(myLaser);
-                root.getChildren().add(myLaser);
+                initLaser();
             }
             laserFramesLeft -= 1;
             if (laserFramesLeft == 0) {
@@ -410,28 +411,41 @@ public class Main extends Application {
         }
     }
 
+    private void initLaser() {
+        Laser myLaser = new Laser(
+                (int)(myPaddle1.getX() + myPaddle1.getWidth() / 2 - 5 / 2),
+                STAGE_HEIGHT - paddleHeight - 10,
+                5,
+                10
+        );
+        myLasers.add(myLaser);
+        root.getChildren().add(myLaser);
+    }
+
     private void initPowerUps(HashSet<String> deadBrickIndices) {
         for (String index: myPowerUpMap.keySet()) {
             if (deadBrickIndices.contains(index)) {
-                int rowIndex = Integer.parseInt(index.substring(0, 1));
-                int colIndex = Integer.parseInt(index.substring(1));
-                int POWERUPSIZE = 10;
-                int POWERUPSPACING = ((STAGE_WIDTH - STAGE_PADDING_X * 2) / 6 - POWERUPSIZE) / 2;
-
-                Image image = new Image(this.getClass().getClassLoader().getResourceAsStream(BOUNCER_IMAGE));
-
-                PowerUp myPowerUp = new PowerUp(
-                        STAGE_PADDING_X + POWERUPSPACING + colIndex * (POWERUPSIZE + POWERUPSPACING * 2),
-                        STAGE_MARGIN + STAGE_PADDING_Y + brickHeight * rowIndex,
-                        POWERUPSIZE,
-                        POWERUPSIZE,
-                        image,
-                        myPowerUpMap.get(index)
-                );
-                myPowerUps.add(myPowerUp);
-                root.getChildren().add(myPowerUp);
+                initPowerUp(index);
             }
         }
+    }
+
+    private void initPowerUp(String index) {
+        int rowIndex = Integer.parseInt(index.substring(0, 1));
+        int colIndex = Integer.parseInt(index.substring(1));
+        String powerUpName = myPowerUpMap.get(index);
+        Image image = new Image(this.getClass().getClassLoader().getResourceAsStream(powerUpName + ".gif"));
+
+        PowerUp myPowerUp = new PowerUp(
+                STAGE_PADDING_X + POWERUPSPACING + colIndex * (POWERUPSIZE + POWERUPSPACING * 2),
+                STAGE_MARGIN + STAGE_PADDING_Y + brickHeight * rowIndex,
+                POWERUPSIZE,
+                POWERUPSIZE,
+                image,
+                powerUpName
+        );
+        myPowerUps.add(myPowerUp);
+        root.getChildren().add(myPowerUp);
     }
 
     private void handleDeadNodes() {
