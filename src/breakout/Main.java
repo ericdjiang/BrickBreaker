@@ -57,26 +57,28 @@ public class Main extends Application {
     // some things needed to remember during game
     private Scene myScene;
     private Bouncer mainBouncer;
-    private Paddle myPaddle;
+    private Paddle myPaddle1;
+    private Paddle myPaddle2;
+
     private int score;
     private int currentLevel = 0;
     private boolean gamePaused = true;
 
     // brick widths
-    int brickSpacing = 10;
+    private int brickSpacing = 10;
     int brickWidth = (STAGE_WIDTH - STAGE_PADDING_X * 2) / 6 - brickSpacing * 2;
 
-    int paddleWidth = 100;
-    int PADDLE_WIDTH_WIDE = 200;
-    int paddleHeight = 5;
-    int bouncerWidth = 10;
-    int bouncerHeight = 10;
+    private int paddleWidth = 100;
+    private int PADDLE_WIDTH_WIDE = 200;
+    private int paddleHeight = 5;
+    private int bouncerWidth = 10;
+    private int bouncerHeight = 10;
 
-    boolean lasersEnabled = false;
-    int laserInterval = 1; //seconds
-    int framesBetweenLasers = laserInterval * FRAMES_PER_SECOND;
-    int laserCount = 3;
-    int laserFramesLeft = framesBetweenLasers * laserCount;
+    private boolean lasersEnabled = false;
+    private int laserInterval = 1; //seconds
+    private int framesBetweenLasers = laserInterval * FRAMES_PER_SECOND;
+    private int laserCount = 3;
+    private int laserFramesLeft = framesBetweenLasers * laserCount;
 
     private ArrayList < Brick > myBricks = new ArrayList < > ();
     private ArrayList < Bouncer > myBouncers = new ArrayList < > ();
@@ -86,16 +88,16 @@ public class Main extends Application {
     private ArrayList < String[][] > myBrickLayouts = new ArrayList < > ();
 
     private HashMap < String, String > myPowerUpMap = new HashMap < > ();
-    Group root = new Group();
+    private Group root = new Group();
 
-    int playerScore = 0;
-    int playerLives = 3;
-    LevelText currLvlTxt;
-    LevelText scoreText;
-    LevelText lifeText;
+    private int playerScore = 0;
+    private int playerLives = 3;
+    private LevelText currLvlTxt;
+    private LevelText scoreText;
+    private LevelText lifeText;
 
-    LevelText startScreenTxt;
-    LevelText newLevelText;
+    private LevelText startScreenTxt;
+    private LevelText newLevelText;
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -258,7 +260,7 @@ public class Main extends Application {
     }
 
     private void initPaddle() {
-        myPaddle = new Paddle(
+        myPaddle1 = new Paddle(
                 STAGE_WIDTH / 2 - paddleWidth / 2,
                 STAGE_HEIGHT - paddleHeight,
                 paddleWidth,
@@ -266,7 +268,16 @@ public class Main extends Application {
                 Color.WHITE
         );
 
-        root.getChildren().add(myPaddle);
+        myPaddle2 = new Paddle(
+                STAGE_WIDTH / 2 - paddleWidth / 2,
+                STAGE_HEIGHT - paddleHeight * 10,
+                paddleWidth,
+                paddleHeight,
+                Color.WHITE
+        );
+
+        root.getChildren().add(myPaddle1);
+        root.getChildren().add(myPaddle2);
     }
 
     private void setupStatusDisplay() {
@@ -330,33 +341,8 @@ public class Main extends Application {
 
     private void handlePowerUps(ArrayList<PowerUp> deadPowerUps) {
         for (PowerUp myPowerUp: myPowerUps) {
-            if (myPowerUp.checkPaddleCollide(myPaddle)) {
-                String power = myPowerUp.getPower();
-                switch (power) {
-                    case "a":
-                        myPaddle.setWidth(PADDLE_WIDTH_WIDE);
-                    case "b":
-                        for (Bouncer myBouncer: myBouncers) {
-                            myBouncer.slowDown();
-                        }
-                        break;
-                    case "c":
-                        System.out.println("new bouncer baby");
-                        Bouncer powerBouncer = new Bouncer(
-                                (int) myPaddle.getX(),
-                                STAGE_HEIGHT - paddleHeight - bouncerHeight,
-                                bouncerWidth,
-                                bouncerHeight,
-                                Color.PLUM
-                        );
-
-                        myBouncers.add(powerBouncer);
-                        root.getChildren().add(powerBouncer);
-                        powerBouncer.start();
-                    case "d":
-                        System.out.println("enabling lasers");
-                        enableLasers();
-                }
+            if (myPowerUp.checkPaddleCollide(myPaddle1) || myPowerUp.checkPaddleCollide(myPaddle2)) {
+                handleNewPowerUp(myPowerUp);
                 deadPowerUps.add(myPowerUp);
             } else if (myPowerUp.checkBottomCollide(STAGE_HEIGHT)) {
                 deadPowerUps.add(myPowerUp);
@@ -368,12 +354,48 @@ public class Main extends Application {
         root.getChildren().removeAll(deadPowerUps);
     }
 
+    private void handleNewPowerUp(PowerUp myPowerUp) {
+        String power = myPowerUp.getPower();
+        switch (power) {
+            case "a":
+                myPaddle1.setWidth(PADDLE_WIDTH_WIDE);
+                myPaddle2.setWidth(PADDLE_WIDTH_WIDE);
+            case "b":
+                slowDownBouncers();
+                break;
+            case "c":
+                initAdditionalBouncer();
+            case "d":
+                enableLasers();
+        }
+    }
+
+    private void initAdditionalBouncer() {
+        Bouncer powerBouncer = new Bouncer(
+                (int) myPaddle1.getX(),
+                STAGE_HEIGHT - paddleHeight - bouncerHeight,
+                bouncerWidth,
+                bouncerHeight,
+                Color.PLUM
+        );
+
+        myBouncers.add(powerBouncer);
+        root.getChildren().add(powerBouncer);
+        powerBouncer.start();
+    }
+
+    private void slowDownBouncers() {
+        for (Bouncer myBouncer : myBouncers) {
+            myBouncer.slowDown();
+        }
+    }
+
     private void shootLasers() {
         if (lasersEnabled) {
             if (laserFramesLeft % framesBetweenLasers == 0) {
                 System.out.println("Success");
                 Laser myLaser = new Laser(
-                        (int)(myPaddle.getX() + myPaddle.getWidth() / 2 - 5 / 2),
+                        (int)(myPaddle1.getX() + myPaddle1.getWidth() / 2 - 5 / 2),
                         STAGE_HEIGHT - paddleHeight - 10,
                         5,
                         10
@@ -443,7 +465,9 @@ public class Main extends Application {
     private void handleBouncers() {
         ArrayList<Bouncer> deadBouncers = new ArrayList < Bouncer > ();
         for (Bouncer myBouncer: myBouncers) {
-            myBouncer.checkPaddleCollide(myPaddle);
+            myBouncer.checkPaddleCollide(myPaddle1);
+            myBouncer.checkPaddleCollide(myPaddle2);
+
             myBouncer.checkWallCollide(STAGE_WIDTH, STAGE_MARGIN);
 
             if (myBouncer.checkBottomCollide(STAGE_HEIGHT)) deadBouncers.add(myBouncer);
@@ -501,7 +525,9 @@ public class Main extends Application {
     }
 
     private void resetPaddlePosition() {
-        myPaddle.setX(STAGE_WIDTH / 2 - paddleWidth / 2);
+        myPaddle1.setX(STAGE_WIDTH / 2 - paddleWidth / 2);
+        myPaddle2.setX(STAGE_WIDTH / 2 - paddleWidth / 2);
+
     }
 
     private void updateLevelText() {
@@ -524,7 +550,8 @@ public class Main extends Application {
 
     // What to do each time a key is pressed
     private void handleMouseMove(double x, double y) {
-        myPaddle.moveTo(x);
+        myPaddle1.moveTo(x);
+        myPaddle2.moveTo(x);
 
         if (gamePaused) {
             mainBouncer.moveTo(x);
@@ -546,17 +573,8 @@ public class Main extends Application {
         } else if (code == KeyCode.L) {
             playerLives += 1;
         } else if (code == KeyCode.S) {
-            for (Bouncer myBouncer: myBouncers) {
-                myBouncer.slowDown();
-            }
+            slowDownBouncers();
         }
-
-        //        if (code == KeyCode.RIGHT) {
-        //            myPaddle.moveRight();
-        //        }
-        //        else if (code == KeyCode.LEFT) {
-        //            myPaddle.moveLeft();
-        //        }
     }
 
 
