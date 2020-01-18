@@ -52,6 +52,8 @@ public class Main extends Application {
     public static final int brickHeight = 30;
 
 
+    public static final int PLAYER_LIVES = 3;
+
     // some things needed to remember during game
     private Scene myScene;
     private Bouncer mainBouncer;
@@ -59,6 +61,10 @@ public class Main extends Application {
     private int score;
     private int currentLevel = 0;
     private boolean gamePaused = true;
+
+    // brick widths
+    int brickSpacing = 10;
+    int brickWidth = ( STAGE_WIDTH - STAGE_PADDING_X*2 )/6 - brickSpacing*2;
 
     int paddleWidth = 100;
     int PADDLE_WIDTH_WIDE = 200;
@@ -109,103 +115,97 @@ public class Main extends Application {
 
     private void createBrickLayouts(){
         try {
-            File file = new File(
-                getClass().getClassLoader().getResource("brick_layouts.txt").getFile()
-            );
+            // read in file of brick layouts for multiple levels
+            File file = new File(getClass().getClassLoader().getResource("brick_layouts.txt").getFile());
             Scanner myReader = new Scanner(file);
-
             String[][] brickLayout = new String[3][6];
-            int brickRow = 0;
-            while (myReader.hasNextLine()) {
-                String line = myReader.nextLine();
 
-                if(line.equals("-")){
-                    myBrickLayouts.add(brickLayout);
-                    brickRow = 0;
-                    brickLayout = new String[3][6];
-                } else {
-                    String[] rowBricks = line.split(" ");
-                    brickLayout[brickRow] = rowBricks;
-                    brickRow+=1;
-                }
-            }
+            storeLayoutsAsArray(myReader, brickLayout);
+
             myReader.close();
-
         } catch (FileNotFoundException e) {
-            System.out.println("An error occurred.");
+            System.out.println("File could not be found.");
             e.printStackTrace();
         }
     }
 
-    private void displayStartScreen(String splashMsg){
-        gamePaused = true;
-        clearOldSprites();
+    private void storeLayoutsAsArray(Scanner myReader, String[][] brickLayout) {
+        int brickRow = 0;
+        while (myReader.hasNextLine()) {
+            String line = myReader.nextLine();
 
+            if(line.equals("-")){ //check if level has been completely processed
+                myBrickLayouts.add(brickLayout); //store current layout in arraylist of all layouts
+                brickRow = 0;
+                brickLayout = new String[3][6];
+            } else { // store each space-separated string in array
+                String[] rowBricks = line.split(" ");
+                brickLayout[brickRow] = rowBricks;
+                brickRow+=1;
+            }
+        }
+    }
+
+    private void displayStartScreen(String splashMsg){
+        pauseGame();
+
+        clearOldSprites();
         resetPlayerLives();
         resetPlayerScore();
-        startScreenTxt = new LevelText(0, 30, STAGE_WIDTH,splashMsg, 14);
+
+        startScreenTxt = new LevelText(0, 30, STAGE_WIDTH, splashMsg, 14);
         root.getChildren().add(startScreenTxt);
     }
+
+    private void pauseGame() {
+        gamePaused = true;
+    }
+
     // Create the game's "scene": what shapes will be in the game and their starting properties
     private Scene setupGame (int width, int height, Paint background) {
         // read in file with brick layouts
         createBrickLayouts();
         // create one top level collection to organize the things in the scene
-//        initLevel(currentLevel);
         displayStartScreen("Welcome to BrickBreaker.\nPress to start.");
-        // create a place to see the shapes
+        // create a scene that contains all game objects
         Scene scene = new Scene(root, width, height, background);
-        // respond to input
+        // handle keyboard input for level changes/cheat codes
         scene.setOnKeyPressed(e -> handleKeyInput(e.getCode()));
 
-//        scene.setOnMouseClicked(e -> handleMouseInput(e.getX(), e.getY()));
         return scene;
     }
 
     private void generateBricks(int newLevel){
-        int brickSpacing = 10;
-
-        int brickWidth = ( STAGE_WIDTH - STAGE_PADDING_X*2 )/6 - brickSpacing*2;
         int brickX = STAGE_PADDING_X + brickSpacing;
-
-
         int brickY = STAGE_MARGIN+STAGE_PADDING_Y;
-
-
-        String[][] myBrickLayout = myBrickLayouts.get(newLevel-1);
+        String[][] myBrickLayout = myBrickLayouts.get(newLevel-1); //get brick layout corresponding to current level
         for (int row = 0; row < myBrickLayout.length; row++) {
             for (int col = 0; col < myBrickLayout[row].length; col++) {
                 String cell = myBrickLayout[row][col];
-
                 String index = String.valueOf(row) + String.valueOf(col);
-
                 int brickStrength = Integer.valueOf(cell.substring(0,1));
-                if(cell.length()>1){
-                    String powerUp = cell.substring(1);
-                    myPowerUpMap.put(index, powerUp);
+                if(cell.length()>1){ // if brick contains a powerup
+                    storePowerUp(cell, index);
                 }
-
                 if(brickStrength!=0) {
-                    Brick myBrick = new Brick(
-                            brickX,
-                            brickY,
-                            brickWidth,
-                            brickHeight,
-                            Color.BLACK,
-                            brickStrength,
-                            index
-                    );
-
-                    myBricks.add(myBrick);
-                    root.getChildren().add(myBrick);
+                    generateBrick(brickX, brickY, index, brickStrength);
                 }
                 brickX += brickSpacing*2 + brickWidth;
             }
             brickX = STAGE_PADDING_X + brickSpacing;
             brickY += brickSpacing + brickHeight;
         }
+    }
 
-        System.out.println("BRICKS GENREATED");
+    private void storePowerUp(String cell, String index) {
+        String powerUp = cell.substring(1);
+        myPowerUpMap.put(index, powerUp);
+    }
+
+    private void generateBrick(int brickX, int brickY, String index, int brickStrength) {
+        Brick myBrick = new Brick(brickX, brickY, brickWidth, brickHeight, Color.BLACK, brickStrength,index);
+        myBricks.add(myBrick);
+        root.getChildren().add(myBrick);
     }
 
     private void clearOldSprites(){
@@ -220,13 +220,11 @@ public class Main extends Application {
         resetLaserFrames();
 
         root.getChildren().clear();
-
-        System.out.println("clearing sprites");
     }
 
 
     private void resetPlayerLives() {
-        playerLives = 3;
+        playerLives = PLAYER_LIVES;
     }
     private void resetPlayerScore() {
         playerScore = 0;
@@ -240,7 +238,6 @@ public class Main extends Application {
                 "Level: " + currentLevel + "\nLeft click to start",
                 20
         );
-
         root.getChildren().add(newLevelText);
     }
 
@@ -248,7 +245,7 @@ public class Main extends Application {
         myScene.setOnMouseMoved(e -> handleMouseMove(e.getX(), e.getY()));
         myScene.addEventFilter(MouseEvent.MOUSE_CLICKED, handleMouseInput);
 
-        gamePaused = true;
+        pauseGame();
         clearOldSprites();
 
         showNewLevelText();
@@ -312,7 +309,7 @@ public class Main extends Application {
                     playerLives-=1;
                     initMainBouncer();
                     resetPaddlePosition();
-                    gamePaused = true;
+                    pauseGame();
                     myScene.addEventFilter(MouseEvent.MOUSE_CLICKED, handleMouseInput);
 
                     System.out.println("new player lives"+playerLives);
