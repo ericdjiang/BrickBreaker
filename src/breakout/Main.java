@@ -117,7 +117,9 @@ public class Main extends Application {
 
 
     // splash screen messages
-    private final String WELCOME_MESSAGE = "Welcome to BakeOut by Eric Jiang (edj9) \nPress 1 to START";
+    private final String WELCOME_MSG = "Welcome to BakeOut by Eric Jiang (edj9) \nPress 1 to START";
+    private final String LOSE_MSG = "You lose\nPress 1 to try again";
+    private final String WIN_MSG = "You win! Press 1 to start over";
 
     /**
      * Begins the game loop via timeline
@@ -171,7 +173,7 @@ public class Main extends Application {
         // read in file with brick layouts
         myBrickLayouts = new LayoutParser().createBrickLayouts(BRICK_LAYOUT_FILE);
         // create one top level collection to organize the things in the scene
-        displaySplashScreen(WELCOME_MESSAGE);
+        displaySplashScreen(WELCOME_MSG);
         // create a scene that contains all game objects
         Scene scene = new Scene(root, width, height, background);
         // handle keyboard input for level changes/cheat codes
@@ -528,8 +530,7 @@ public class Main extends Application {
     private void handleAllBouncersDead() {
         System.out.println("no more bouncers");
         if (playerLives == 0) {
-            System.out.println("no more player lives");
-            displaySplashScreen("You Lose\nPress 1 to try again.");
+            displaySplashScreen(LOSE_MSG);
         } else {
             //if the player died but still has lives
             playerLives -= 1;
@@ -548,7 +549,7 @@ public class Main extends Application {
      */
     private void handleAllBricksDead() {
         if (currentLevel == myBrickLayouts.size()) {
-            displaySplashScreen("You Won!");
+            displaySplashScreen(WIN_MSG);
         } else {
             currentLevel += 1;
             initLevel(currentLevel);

@@ -1,12 +1,8 @@
 package breakout;
 
-import javafx.scene.Group;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Shape;
-
-import java.awt.*;
-import java.util.ArrayList;
 
 public class Bouncer extends Rectangle {
     int directionX = 0;
@@ -21,15 +17,26 @@ public class Bouncer extends Rectangle {
         setY(startY);
     }
 
+    /**
+     * Translates bouncer to new x and y location
+     */
     public void move () {
         setX(getX() + directionX * vel);
         setY(getY() + directionY * vel);
     }
 
+    /**
+     * Translates bouncer to mouse X location
+     * @param x x location of the mouse
+     */
     public void moveTo(double x) {
         setX(x-getWidth()/2);
     }
 
+    /**
+     * Changes direction of bouncer depending on if and where paddle collision occurred
+     * @param myPaddle a paddle object
+     */
     public void checkPaddleCollide (Paddle myPaddle){
         double thirdWidth = myPaddle.getWidth()/3;
         double x0 = myPaddle.getX();
@@ -50,6 +57,11 @@ public class Bouncer extends Rectangle {
         }
     }
 
+    /**
+     * Check if bouncer has collided with the top or sides of play area
+     * @param STAGEWIDTH width of play area
+     * @param STAGE_MARGIN top of play area
+     */
     public void checkWallCollide (int STAGEWIDTH, int STAGE_MARGIN) {
         if(getX() > STAGEWIDTH - getWidth() || getX() < 0){
             flipDirectionX();
@@ -60,10 +72,20 @@ public class Bouncer extends Rectangle {
         }
     }
 
-    public  boolean checkBottomCollide (int STAGEHEIGHT) {
-        return( getY() > STAGEHEIGHT - getHeight() );
+    /**
+     * Check if bouncer has collided with the bottom of the stage
+     * @param STAGE_HEIGHT the height of the stage
+     * @return boolean representing if the bouncer has collided with stage
+     */
+    public  boolean checkBottomCollide (int STAGE_HEIGHT) {
+        return( getY() > STAGE_HEIGHT - getHeight() );
     }
 
+    /**
+     * Check if bouncer has collided with a brick. Flip direction based on collision point.
+     * @param myBrick single Brick object
+     * @return boolean representing if bouncer has collided with brick
+     */
     public boolean checkBrickCollide (Brick myBrick) {
         Shape intersection = Shape.intersect(this, myBrick);
 
@@ -88,7 +110,11 @@ public class Bouncer extends Rectangle {
     public void speedUp() {
         vel = 7;
     }
-    void start() {
+
+    /**
+     * Set the starting velocity of the bouncer to be up and to the right
+     */
+    public void start() {
         directionX = 1;
         directionY = -1;
     }
