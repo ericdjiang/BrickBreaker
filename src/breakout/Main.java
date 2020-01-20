@@ -71,14 +71,14 @@ public class Main extends Application {
     private int currentLevel = 0;
     private boolean gamePaused = true;
 
-
-
+    // laser durations
     private boolean lasersEnabled = false;
-    private int laserInterval = 1; //seconds
-    private int framesBetweenLasers = laserInterval * FRAMES_PER_SECOND;
-    private int laserCount = 3;
-    private int laserFramesLeft = framesBetweenLasers * laserCount;
+    private final int LASER_INTERVAL = 1; //seconds
+    private final int FRAMES_BETWEEN_LASERS = LASER_INTERVAL * FRAMES_PER_SECOND;
+    private final int LASER_COUNT = 3;
+    private int laserFramesLeft = FRAMES_BETWEEN_LASERS * LASER_COUNT;
 
+    // lists to hold active scene nodes
     private ArrayList < Brick > myBricks = new ArrayList < > ();
     private ArrayList < Bouncer > myBouncers = new ArrayList < > ();
     private ArrayList < PowerUp > myPowerUps = new ArrayList < > ();
@@ -93,17 +93,14 @@ public class Main extends Application {
     private int playerLives = 3;
     private int playerScore = 0;
 
-
-
     private LevelText currLvlTxt;
     private LevelText scoreText;
     private LevelText lifeText;
-
     private LevelText startScreenTxt;
     private LevelText newLevelText;
 
-    int POWERUPSIZE = 10;
-    int POWERUPSPACING = ((STAGE_WIDTH - STAGE_PADDING_X * 2) / 6 - POWERUPSIZE) / 2;
+    int POWERUP_SIZE = 10;
+    int POWERUP_SPACING = ((STAGE_WIDTH - STAGE_PADDING_X * 2) / 6 - POWERUP_SIZE) / 2;
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -118,40 +115,6 @@ public class Main extends Application {
         animation.setCycleCount(Timeline.INDEFINITE);
         animation.getKeyFrames().add(frame);
         animation.play();
-
-    }
-
-    private void createBrickLayouts() {
-        try {
-            // read in file of brick layouts for multiple levels
-            File file = new File(getClass().getClassLoader().getResource(BRICK_LAYOUT_FILE).getFile());
-            Scanner myReader = new Scanner(file);
-            String[][] brickLayout = new String[3][6];
-
-            storeLayoutsAsArray(myReader, brickLayout);
-
-            myReader.close();
-        } catch (FileNotFoundException e) {
-            System.out.println("File could not be found.");
-            e.printStackTrace();
-        }
-    }
-
-    private void storeLayoutsAsArray(Scanner myReader, String[][] brickLayout) {
-        int brickRow = 0;
-        while (myReader.hasNextLine()) {
-            String line = myReader.nextLine();
-
-            if (line.equals("-")) { //check if level has been completely processed
-                myBrickLayouts.add(brickLayout); //store current layout in arraylist of all layouts
-                brickRow = 0;
-                brickLayout = new String[3][6];
-            } else { // store each space-separated string in array
-                String[] rowBricks = line.split(" ");
-                brickLayout[brickRow] = rowBricks;
-                brickRow += 1;
-            }
-        }
     }
 
     private void displayStartScreen(String splashMsg) {
@@ -172,7 +135,7 @@ public class Main extends Application {
     // Create the game's "scene": what shapes will be in the game and their starting properties
     private Scene setupGame(int width, int height, Paint background) {
         // read in file with brick layouts
-        createBrickLayouts();
+        myBrickLayouts = new LevelGenerator().createBrickLayouts(BRICK_LAYOUT_FILE);
         // create one top level collection to organize the things in the scene
         displayStartScreen("Welcome to BrickBreaker.\nPress to start.");
         // create a scene that contains all game objects
@@ -395,7 +358,7 @@ public class Main extends Application {
 
     private void shootLasers() {
         if (lasersEnabled) {
-            if (laserFramesLeft % framesBetweenLasers == 0) {
+            if (laserFramesLeft % FRAMES_BETWEEN_LASERS == 0) {
                 initLaser();
             }
             laserFramesLeft -= 1;
@@ -431,10 +394,10 @@ public class Main extends Application {
         Image image = new Image(this.getClass().getClassLoader().getResourceAsStream(powerUpName + ".gif"));
 
         PowerUp myPowerUp = new PowerUp(
-                STAGE_PADDING_X + POWERUPSPACING + colIndex * (POWERUPSIZE + POWERUPSPACING * 2),
+                STAGE_PADDING_X + POWERUP_SPACING + colIndex * (POWERUP_SIZE + POWERUP_SPACING * 2),
                 STAGE_MARGIN + STAGE_PADDING_Y + BRICK_HEIGHT * rowIndex,
-                POWERUPSIZE,
-                POWERUPSIZE,
+                POWERUP_SIZE,
+                POWERUP_SIZE,
                 image,
                 powerUpName
         );
@@ -551,7 +514,7 @@ public class Main extends Application {
     }
 
     private void resetLaserFrames() {
-        laserFramesLeft = framesBetweenLasers * laserCount;
+        laserFramesLeft = FRAMES_BETWEEN_LASERS * LASER_COUNT;
     }
 
     // What to do each time a key is pressed
