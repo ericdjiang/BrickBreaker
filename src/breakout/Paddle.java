@@ -12,8 +12,6 @@ public class Paddle extends Rectangle {
         setY(startY);
     }
 
-
-
     public void moveTo(double x) {
         setX(x-getWidth()/2);
     }

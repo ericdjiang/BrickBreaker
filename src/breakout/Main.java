@@ -23,56 +23,55 @@ import java.util.Scanner;
 
 
 /**
+ * The Main class serves as the foundation for the BrickBreaker game.
+ * This class contains the scene, stage, and game timeline, and
+ * calls initializes bricks, game objects, new levels, and
+ * handles user mouse/keyboard input.
+ *
  * @author Eric Jiang
- * @version 1.1 01/12/2020
+ * @version 1.1 01/19/2020
  * @netid edj9
  */
+
+
 public class Main extends Application {
-    public static final String TITLE = "Bakeout - Eric Jiang";
-    public static final int STAGE_WIDTH = 700;
-    public static final int STAGE_MARGIN = 50;
-    public static final int STAGE_HEIGHT = 400 + STAGE_MARGIN;
-    public static final int FRAMES_PER_SECOND = 60;
-    public static final int MILLISECOND_DELAY = 1000 / FRAMES_PER_SECOND;
-    public static final double SECOND_DELAY = 1.0 / FRAMES_PER_SECOND;
-    public static final Paint BACKGROUND = Color.BLACK;
-    public static final Paint HIGHLIGHT = Color.OLIVEDRAB;
-    public static final String BOUNCER_IMAGE = "ball.gif";
-    public static final int BOUNCER_SPEED = 300;
-    public static final Paint MOVER_COLOR = Color.PLUM;
-    public static final int MOVER_SIZE = 50;
-    public static final int MOVER_SPEED = 5;
-    public static final Paint GROWER_COLOR = Color.BISQUE;
-    public static final double GROWER_RATE = 1.1;
-    public static final int GROWER_SIZE = 50;
+    // stage styling
+    private final String TITLE = "Bakeout - Eric Jiang";
+    private final int STAGE_WIDTH = 700;
+    private final int STAGE_MARGIN = 50;
+    private final int STAGE_HEIGHT = 400 + STAGE_MARGIN;
+    private final int STAGE_PADDING_X = 50;
+    private final int STAGE_PADDING_Y = 50;
+    private final Paint BACKGROUND = Color.BLACK;
 
-    public static final String BRICK_LAYOUT_FILE = "./brick_layouts.txt";
-    public static final int STAGE_PADDING_X = 50;
-    public static final int STAGE_PADDING_Y = 50;
-    public static final int brickHeight = 30;
+    // timeline speed
+    private final int FRAMES_PER_SECOND = 60;
+    private final int MILLISECOND_DELAY = 1000 / FRAMES_PER_SECOND;
+    private final double SECOND_DELAY = 1.0 / FRAMES_PER_SECOND;
 
+    private final String BRICK_LAYOUT_FILE = "./brick_layouts.txt";
 
-    public static final int PLAYER_LIVES = 3;
+    // game object sizing
+    private final int BRICK_HEIGHT = 30;
+    private final int PADDLE_WIDTH = 100;
+    private final int PADDLE_WIDTH_WIDE = 200;
+    private final int PADDLE_HEIGHT = 5;
+    private final int BOUNCER_WIDTH = 10;
+    private final int BOUNCER_HEIGHT = 10;
+    private final int BRICK_SPACING = 10;
+    private final int BRICK_WIDTH = (STAGE_WIDTH - STAGE_PADDING_X * 2) / 6 - BRICK_SPACING * 2;
 
-    // some things needed to remember during game
+    // game objects
     private Scene myScene;
     private Bouncer mainBouncer;
     private Paddle myPaddle1;
     private Paddle myPaddle2;
 
-    private int score;
+    // game states
     private int currentLevel = 0;
     private boolean gamePaused = true;
 
-    // brick widths
-    private int brickSpacing = 10;
-    int brickWidth = (STAGE_WIDTH - STAGE_PADDING_X * 2) / 6 - brickSpacing * 2;
 
-    private int paddleWidth = 100;
-    private int PADDLE_WIDTH_WIDE = 200;
-    private int paddleHeight = 5;
-    private int bouncerWidth = 10;
-    private int bouncerHeight = 10;
 
     private boolean lasersEnabled = false;
     private int laserInterval = 1; //seconds
@@ -90,8 +89,12 @@ public class Main extends Application {
     private HashMap < String, String > myPowerUpMap = new HashMap < > ();
     private Group root = new Group();
 
-    private int playerScore = 0;
+    private final int PLAYER_START_LIVES = 3;
     private int playerLives = 3;
+    private int playerScore = 0;
+
+
+
     private LevelText currLvlTxt;
     private LevelText scoreText;
     private LevelText lifeText;
@@ -121,7 +124,7 @@ public class Main extends Application {
     private void createBrickLayouts() {
         try {
             // read in file of brick layouts for multiple levels
-            File file = new File(getClass().getClassLoader().getResource("brick_layouts.txt").getFile());
+            File file = new File(getClass().getClassLoader().getResource(BRICK_LAYOUT_FILE).getFile());
             Scanner myReader = new Scanner(file);
             String[][] brickLayout = new String[3][6];
 
@@ -181,17 +184,17 @@ public class Main extends Application {
     }
 
     private void generateBricks(int newLevel) {
-        int brickX = STAGE_PADDING_X + brickSpacing;
+        int brickX = STAGE_PADDING_X + BRICK_SPACING;
         int brickY = STAGE_MARGIN + STAGE_PADDING_Y;
         String[][] myBrickLayout = myBrickLayouts.get(newLevel - 1); //get brick layout corresponding to current level
         for (int row = 0; row < myBrickLayout.length; row++) {
             for (int col = 0; col < myBrickLayout[row].length; col++) {
                 parseCellContents(brickX, brickY, myBrickLayout[row][col], row, col);
 
-                brickX += brickSpacing * 2 + brickWidth;
+                brickX += BRICK_SPACING * 2 + BRICK_WIDTH;
             }
-            brickX = STAGE_PADDING_X + brickSpacing;
-            brickY += brickSpacing + brickHeight;
+            brickX = STAGE_PADDING_X + BRICK_SPACING;
+            brickY += BRICK_SPACING + BRICK_HEIGHT;
         }
     }
 
@@ -214,7 +217,7 @@ public class Main extends Application {
     }
 
     private void initBrick(int brickX, int brickY, String index, int brickStrength) {
-        Brick myBrick = new Brick(brickX, brickY, brickWidth, brickHeight, Color.BLACK, brickStrength, index);
+        Brick myBrick = new Brick(brickX, brickY, BRICK_WIDTH, BRICK_HEIGHT, Color.BLACK, brickStrength, index);
         myBricks.add(myBrick);
         root.getChildren().add(myBrick);
     }
@@ -235,7 +238,7 @@ public class Main extends Application {
 
 
     private void resetPlayerLives() {
-        playerLives = PLAYER_LIVES;
+        playerLives = PLAYER_START_LIVES;
     }
 
     private void resetPlayerScore() {
@@ -270,18 +273,18 @@ public class Main extends Application {
 
     private void initPaddle() {
         myPaddle1 = new Paddle(
-                STAGE_WIDTH / 2 - paddleWidth / 2,
-                STAGE_HEIGHT - paddleHeight,
-                paddleWidth,
-                paddleHeight,
+                STAGE_WIDTH / 2 - PADDLE_WIDTH / 2,
+                STAGE_HEIGHT - PADDLE_HEIGHT,
+                PADDLE_WIDTH,
+                PADDLE_HEIGHT,
                 Color.WHITE
         );
 
         myPaddle2 = new Paddle(
-                STAGE_WIDTH / 2 - paddleWidth / 2,
-                STAGE_HEIGHT - paddleHeight * 10,
-                paddleWidth,
-                paddleHeight,
+                STAGE_WIDTH / 2 - PADDLE_WIDTH / 2,
+                STAGE_HEIGHT - PADDLE_HEIGHT * 10,
+                PADDLE_WIDTH,
+                PADDLE_HEIGHT,
                 Color.WHITE
         );
 
@@ -328,24 +331,15 @@ public class Main extends Application {
     private void step(double elapsedTime) {
         if (currentLevel != 0 && currentLevel != 4 && !gamePaused) {
             updateLevelText();
-
             handleDeadNodes();
-
             handleBouncers();
-
             HashSet < String > deadBrickIndices = getDeadBrickIndeces();
-
             handleLasers();
-
             initPowerUps(deadBrickIndices);
-
             ArrayList < PowerUp > deadPowerUps = new ArrayList();
-
             handlePowerUps(deadPowerUps);
-
             shootLasers();
         }
-
     }
 
     private void handlePowerUps(ArrayList<PowerUp> deadPowerUps) {
@@ -382,9 +376,9 @@ public class Main extends Application {
     private void initAdditionalBouncer() {
         Bouncer powerBouncer = new Bouncer(
                 (int) myPaddle1.getX(),
-                STAGE_HEIGHT - paddleHeight - bouncerHeight,
-                bouncerWidth,
-                bouncerHeight,
+                STAGE_HEIGHT - PADDLE_HEIGHT - BOUNCER_HEIGHT,
+                BOUNCER_WIDTH,
+                BOUNCER_HEIGHT,
                 Color.PLUM
         );
 
@@ -414,7 +408,7 @@ public class Main extends Application {
     private void initLaser() {
         Laser myLaser = new Laser(
                 (int)(myPaddle1.getX() + myPaddle1.getWidth() / 2 - 5 / 2),
-                STAGE_HEIGHT - paddleHeight - 10,
+                STAGE_HEIGHT - PADDLE_HEIGHT - 10,
                 5,
                 10
         );
@@ -438,7 +432,7 @@ public class Main extends Application {
 
         PowerUp myPowerUp = new PowerUp(
                 STAGE_PADDING_X + POWERUPSPACING + colIndex * (POWERUPSIZE + POWERUPSPACING * 2),
-                STAGE_MARGIN + STAGE_PADDING_Y + brickHeight * rowIndex,
+                STAGE_MARGIN + STAGE_PADDING_Y + BRICK_HEIGHT * rowIndex,
                 POWERUPSIZE,
                 POWERUPSIZE,
                 image,
@@ -481,9 +475,7 @@ public class Main extends Application {
         for (Bouncer myBouncer: myBouncers) {
             myBouncer.checkPaddleCollide(myPaddle1);
             myBouncer.checkPaddleCollide(myPaddle2);
-
             myBouncer.checkWallCollide(STAGE_WIDTH, STAGE_MARGIN);
-
             if (myBouncer.checkBottomCollide(STAGE_HEIGHT)) deadBouncers.add(myBouncer);
 
             myBouncer.move();
@@ -527,10 +519,10 @@ public class Main extends Application {
 
     private void initMainBouncer() {
         mainBouncer = new Bouncer(
-                STAGE_WIDTH / 2 - bouncerWidth / 2,
-                STAGE_HEIGHT - paddleHeight - bouncerHeight,
-                bouncerWidth,
-                bouncerHeight,
+                STAGE_WIDTH / 2 - BOUNCER_WIDTH / 2,
+                STAGE_HEIGHT - PADDLE_HEIGHT - BOUNCER_HEIGHT,
+                BOUNCER_WIDTH,
+                BOUNCER_HEIGHT,
                 Color.PLUM
         );
 
@@ -539,8 +531,8 @@ public class Main extends Application {
     }
 
     private void resetPaddlePosition() {
-        myPaddle1.setX(STAGE_WIDTH / 2 - paddleWidth / 2);
-        myPaddle2.setX(STAGE_WIDTH / 2 - paddleWidth / 2);
+        myPaddle1.setX(STAGE_WIDTH / 2 - PADDLE_WIDTH / 2);
+        myPaddle2.setX(STAGE_WIDTH / 2 - PADDLE_WIDTH / 2);
 
     }
 
