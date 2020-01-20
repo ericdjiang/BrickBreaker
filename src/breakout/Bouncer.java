@@ -111,10 +111,16 @@ public class Bouncer extends Rectangle {
         return false;
     }
 
+    /**
+     * Decreases velocity of bouncer
+     */
     public void slowDown() {
         vel = 3;
     }
 
+    /**
+     * Increases velocity of bouncer
+     */
     public void speedUp() {
         vel = 7;
     }
@@ -127,10 +133,16 @@ public class Bouncer extends Rectangle {
         directionY = -1;
     }
 
+    /**
+     * Flips the x vector of the bouncer's movement
+     */
     public void flipDirectionX() {
         directionX*=-1;
     }
 
+    /**
+     * Flips the y vector of the bouncer's movement
+     */
     public void flipDirectionY() {
         directionY*=-1;
     }
