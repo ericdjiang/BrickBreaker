@@ -1,22 +1,14 @@
 package breakout;
 
-import javafx.scene.Group;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.shape.Shape;
 
 public class PowerUp extends ImageView {
-    private static final int VELOCITY_Y = 2;
+    private final int VELOCITY_Y = 2;
     private String power;
-    private int strength;
-    private double startX;
-    private double startY;
 
     PowerUp(int startX, int startY, int width, int height, Image image, String power) {
         super(image);
-
         this.power = power;
 
         setFitWidth(width);
@@ -25,18 +17,34 @@ public class PowerUp extends ImageView {
         setY(startY);
     }
 
+    /**
+     * Translate downward at constant velocity
+     */
     public void moveDown() {
         setY(getY()+VELOCITY_Y);
     }
 
-    boolean checkBottomCollide (int STAGEHEIGHT) {
-        return( getY() > STAGEHEIGHT - getFitHeight() );
+    /**
+     * Check if power up has collided with the bottom of the stage
+     * @param STAGE_HEIGHT the height of the stage
+     * @return boolean representing if the power up has collided with stage
+     */
+    public boolean checkBottomCollide (int STAGE_HEIGHT) {
+        return( getY() > STAGE_HEIGHT - getFitHeight() );
     }
 
-    boolean checkPaddleCollide (Paddle paddle) {
+    /**
+     * Check if power up has collided with a paddle
+     * @param paddle a paddle object
+     * @return boolean representing if the power up has collided a paddle
+     */
+    public boolean checkPaddleCollide (Paddle paddle) {
         return paddle.getBoundsInParent().intersects(this.getBoundsInParent());
     }
 
+    /**
+     * @return the coded special power
+     */
     public String getPower (){
         return power;
     }

@@ -13,20 +13,15 @@ public class Bouncer extends Rectangle {
     int directionY = 0;
     int vel = 5;
 
-    boolean alive = true;
 
     Bouncer (int startX, int startY, int width, int height, Color color) {
         super( width, height, color);
 
-        this.vel = vel;
-
-//        setFitWidth(width);
-//        setFitHeight(height);
         setX(startX);
         setY(startY);
     }
 
-    void move () {
+    public void move () {
         setX(getX() + directionX * vel);
         setY(getY() + directionY * vel);
     }
@@ -35,7 +30,7 @@ public class Bouncer extends Rectangle {
         setX(x-getWidth()/2);
     }
 
-    void checkPaddleCollide (Paddle myPaddle){
+    public void checkPaddleCollide (Paddle myPaddle){
         double thirdWidth = myPaddle.getWidth()/3;
         double x0 = myPaddle.getX();
         double x1 = myPaddle.getX() + thirdWidth;
@@ -55,7 +50,7 @@ public class Bouncer extends Rectangle {
         }
     }
 
-    void checkWallCollide (int STAGEWIDTH, int STAGE_MARGIN) {
+    public void checkWallCollide (int STAGEWIDTH, int STAGE_MARGIN) {
         if(getX() > STAGEWIDTH - getWidth() || getX() < 0){
             flipDirectionX();
         }
@@ -65,11 +60,11 @@ public class Bouncer extends Rectangle {
         }
     }
 
-    boolean checkBottomCollide (int STAGEHEIGHT) {
+    public  boolean checkBottomCollide (int STAGEHEIGHT) {
         return( getY() > STAGEHEIGHT - getHeight() );
     }
 
-    boolean checkBrickCollide (Brick myBrick) {
+    public boolean checkBrickCollide (Brick myBrick) {
         Shape intersection = Shape.intersect(this, myBrick);
 
         double ballRightX = getX() + getWidth();
@@ -86,29 +81,23 @@ public class Bouncer extends Rectangle {
         return false;
     }
 
-    void kill(Group root, ArrayList<Bouncer>myBouncers){
-        root.getChildren().remove(this);
-        myBouncers.remove(this);
-    }
-
-    void stop() {
-        directionY = 0;
-        directionX = 0;
-    }
-
-    void slowDown() {
+    public void slowDown() {
         vel = 3;
     }
 
+    public void speedUp() {
+        vel = 7;
+    }
     void start() {
         directionX = 1;
         directionY = -1;
     }
 
-    void flipDirectionX(){
+    public void flipDirectionX() {
         directionX*=-1;
     }
-    void flipDirectionY(){
+
+    public void flipDirectionY() {
         directionY*=-1;
     }
 }

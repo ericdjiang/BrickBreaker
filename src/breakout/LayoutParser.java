@@ -8,6 +8,11 @@ import java.util.Scanner;
 public class LayoutParser {
     ArrayList< String[][] > myBrickLayouts = new ArrayList < > ();
 
+    /**
+     * Parses input file and generates array representations of each level's brick/powerup layout
+     * @param BRICK_LAYOUT_FILE File containing brick layouts for all 3 levels
+     * @return ArrayList which stores each level's respective layout as a 2D array
+     */
     public ArrayList<String[][]> createBrickLayouts(String BRICK_LAYOUT_FILE) {
         try {
             // read in file of brick layouts for multiple levels
@@ -25,6 +30,11 @@ public class LayoutParser {
         return myBrickLayouts;
     }
 
+    /**
+     * Helper method that generates the 2D array for a single level
+     * @param myReader the Scanner object to read each line
+     * @param brickLayout the 2D array representation of the brick/powerup layout in a level
+     */
     public void storeLayoutsAsArray(Scanner myReader, String[][] brickLayout) {
         int brickRow = 0;
         while (myReader.hasNextLine()) {
