@@ -5,7 +5,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-public class LevelGenerator {
+public class LayoutParser {
     ArrayList< String[][] > myBrickLayouts = new ArrayList < > ();
 
     public ArrayList<String[][]> createBrickLayouts(String BRICK_LAYOUT_FILE) {

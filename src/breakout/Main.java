@@ -60,6 +60,8 @@ public class Main extends Application {
     private final int BOUNCER_HEIGHT = 10;
     private final int BRICK_SPACING = 10;
     private final int BRICK_WIDTH = (STAGE_WIDTH - STAGE_PADDING_X * 2) / 6 - BRICK_SPACING * 2;
+    private final int POWERUP_SIZE = 10;
+    private final int POWERUP_SPACING = ((STAGE_WIDTH - STAGE_PADDING_X * 2) / 6 - POWERUP_SIZE) / 2;
 
     // game objects
     private Scene myScene;
@@ -68,6 +70,7 @@ public class Main extends Application {
     private Paddle myPaddle2;
 
     // game states
+    private final int NUMBER_OF_LEVELS = 3;
     private int currentLevel = 0;
     private boolean gamePaused = true;
 
@@ -78,30 +81,41 @@ public class Main extends Application {
     private final int LASER_COUNT = 3;
     private int laserFramesLeft = FRAMES_BETWEEN_LASERS * LASER_COUNT;
 
-    // lists to hold active scene nodes
+    // root node to hold scene objects
+    private Group root = new Group();
+
+    // lists to hold active scene objects
     private ArrayList < Brick > myBricks = new ArrayList < > ();
     private ArrayList < Bouncer > myBouncers = new ArrayList < > ();
     private ArrayList < PowerUp > myPowerUps = new ArrayList < > ();
     private ArrayList < Laser > myLasers = new ArrayList < > ();
 
     private ArrayList < String[][] > myBrickLayouts = new ArrayList < > ();
-
     private HashMap < String, String > myPowerUpMap = new HashMap < > ();
-    private Group root = new Group();
 
+    // player data
     private final int PLAYER_START_LIVES = 3;
     private int playerLives = 3;
     private int playerScore = 0;
 
+    // text objects
     private LevelText currLvlTxt;
     private LevelText scoreText;
     private LevelText lifeText;
     private LevelText startScreenTxt;
     private LevelText newLevelText;
 
-    int POWERUP_SIZE = 10;
-    int POWERUP_SPACING = ((STAGE_WIDTH - STAGE_PADDING_X * 2) / 6 - POWERUP_SIZE) / 2;
+    // power up mappings
+    private final String WIDE_PADDLE_POWER = "a";
+    private final String SLOW_BOUNCERS_POWER = "b";
+    private final String EXTRA_BOUNCER_POWER = "c";
+    private final String LASER_POWER = "d";
 
+    /**
+     * Begins the game loop via timeline
+     * @param stage holds the scene and all objects to be drawn to the screen
+     * @throws Exception
+     */
     @Override
     public void start(Stage stage) throws Exception {
         myScene = setupGame(STAGE_WIDTH, STAGE_HEIGHT, BACKGROUND);
@@ -109,15 +123,20 @@ public class Main extends Application {
         stage.setScene(myScene);
         stage.setTitle(TITLE);
         stage.show();
-        // attach "game loop" to timeline to play it (basically just calling step() method repeatedly forever)
-        KeyFrame frame = new KeyFrame(Duration.millis(MILLISECOND_DELAY), e -> step(SECOND_DELAY));
+
+        // game loop which repeatedly calls step() method to rerender scene
+        KeyFrame frame = new KeyFrame(Duration.millis(MILLISECOND_DELAY), e -> step());
         Timeline animation = new Timeline();
         animation.setCycleCount(Timeline.INDEFINITE);
         animation.getKeyFrames().add(frame);
         animation.play();
     }
 
-    private void displayStartScreen(String splashMsg) {
+    /**
+     * Displays a splash screen with the specified message
+     * @param splashMsg the message to be displayed on the splash screen
+     */
+    private void displaySplashScreen(String splashMsg) {
         pauseGame();
 
         clearOldSprites();
@@ -132,12 +151,19 @@ public class Main extends Application {
         gamePaused = true;
     }
 
-    // Create the game's "scene": what shapes will be in the game and their starting properties
+    /**
+     * Initializes a new scene when the player first boots up the game
+     * Stores parsed brick layouts for each level in an array and adds event listener
+     * @param width width of scene
+     * @param height height of scene
+     * @param background background color of scene
+     * @return
+     */
     private Scene setupGame(int width, int height, Paint background) {
         // read in file with brick layouts
-        myBrickLayouts = new LevelGenerator().createBrickLayouts(BRICK_LAYOUT_FILE);
+        myBrickLayouts = new LayoutParser().createBrickLayouts(BRICK_LAYOUT_FILE);
         // create one top level collection to organize the things in the scene
-        displayStartScreen("Welcome to BrickBreaker.\nPress to start.");
+        displaySplashScreen("Welcome to BrickBreaker.\nPress to start.");
         // create a scene that contains all game objects
         Scene scene = new Scene(root, width, height, background);
         // handle keyboard input for level changes/cheat codes
@@ -146,13 +172,18 @@ public class Main extends Application {
         return scene;
     }
 
+    /**
+     * Loops through array containing brick layouts
+     * and generates brick arrangement based on input
+     * @param newLevel the level corresponding to the brick layout stored in myBrickLayouts List
+     */
     private void generateBricks(int newLevel) {
         int brickX = STAGE_PADDING_X + BRICK_SPACING;
         int brickY = STAGE_MARGIN + STAGE_PADDING_Y;
         String[][] myBrickLayout = myBrickLayouts.get(newLevel - 1); //get brick layout corresponding to current level
         for (int row = 0; row < myBrickLayout.length; row++) {
             for (int col = 0; col < myBrickLayout[row].length; col++) {
-                parseCellContents(brickX, brickY, myBrickLayout[row][col], row, col);
+                handleCellContents(brickX, brickY, myBrickLayout[row][col], row, col);
 
                 brickX += BRICK_SPACING * 2 + BRICK_WIDTH;
             }
@@ -161,7 +192,16 @@ public class Main extends Application {
         }
     }
 
-    private void parseCellContents(int brickX, int brickY, String cell, int row, int col) {
+    /**
+     * Generates a brick at the specified location
+     * If specified, stores powerup location and value in map
+     * @param brickX x location of brick
+     * @param brickY y location of brick
+     * @param cell the string representing the strength and powerup of a brick
+     * @param row the row index of the brick in the layout
+     * @param col the column index of the brick in the layout
+     */
+    private void handleCellContents(int brickX, int brickY, String cell, int row, int col) {
         String index = String.valueOf(row) + col;
         int brickStrength = Integer.valueOf(cell.substring(0, 1));
 
@@ -173,16 +213,15 @@ public class Main extends Application {
         }
     }
 
-
-    private void storePowerUp(String cell, String index) {
-        String powerUp = cell.substring(1);
-        myPowerUpMap.put(index, powerUp);
-    }
-
     private void initBrick(int brickX, int brickY, String index, int brickStrength) {
         Brick myBrick = new Brick(brickX, brickY, BRICK_WIDTH, BRICK_HEIGHT, Color.BLACK, brickStrength, index);
         myBricks.add(myBrick);
         root.getChildren().add(myBrick);
+    }
+
+    private void storePowerUp(String cell, String index) {
+        String powerUp = cell.substring(1);
+        myPowerUpMap.put(index, powerUp);
     }
 
     private void clearOldSprites() {
@@ -198,7 +237,6 @@ public class Main extends Application {
 
         root.getChildren().clear();
     }
-
 
     private void resetPlayerLives() {
         playerLives = PLAYER_START_LIVES;
@@ -270,6 +308,11 @@ public class Main extends Application {
         root.getChildren().add(lifeText);
     }
 
+    /**
+     * Generates a hashset of the indeces (row and col locations) of all dead bricks
+     * If powerups are located at these dead brick indeces, they will be generated and dropped
+     * @return hashset of dead brick locations
+     */
     private HashSet<String> getDeadBrickIndeces(){
         ArrayList < Brick > deadBricks = new ArrayList < Brick > ();
         HashSet < String > deadBrickIndices = new HashSet < > ();
@@ -289,10 +332,12 @@ public class Main extends Application {
 
         return deadBrickIndices;
     }
-    // Change properties of shapes in small ways to animate them over time
-    // Note, there are more sophisticated ways to animate shapes, but these simple ways work fine to start
-    private void step(double elapsedTime) {
-        if (currentLevel != 0 && currentLevel != 4 && !gamePaused) {
+
+    /**
+     * Handles all collisions, rerenders moving objects, and deletes dead nodes
+     */
+    private void step() {
+        if (currentLevel > 0 && currentLevel <= NUMBER_OF_LEVELS && !gamePaused) {
             updateLevelText();
             handleDeadNodes();
             handleBouncers();
@@ -305,6 +350,10 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Checks to see if any PowerUps have collided with paddle or bottom of screen
+     * @param deadPowerUps stores the PowerUp objects which have either collided with paddle or bottom of screen
+     */
     private void handlePowerUps(ArrayList<PowerUp> deadPowerUps) {
         for (PowerUp myPowerUp: myPowerUps) {
             if (myPowerUp.checkPaddleCollide(myPaddle1) || myPowerUp.checkPaddleCollide(myPaddle2)) {
@@ -320,18 +369,22 @@ public class Main extends Application {
         root.getChildren().removeAll(deadPowerUps);
     }
 
+    /**
+     * Gives user a power up based on the value specified by myPowerUp
+     * @param myPowerUp the PowerUp objects which collided with the paddle
+     */
     private void handleNewPowerUp(PowerUp myPowerUp) {
         String power = myPowerUp.getPower();
         switch (power) {
-            case "a":
+            case WIDE_PADDLE_POWER:
                 myPaddle1.setWidth(PADDLE_WIDTH_WIDE);
                 myPaddle2.setWidth(PADDLE_WIDTH_WIDE);
-            case "b":
+            case SLOW_BOUNCERS_POWER:
                 slowDownBouncers();
                 break;
-            case "c":
+            case EXTRA_BOUNCER_POWER:
                 initAdditionalBouncer();
-            case "d":
+            case LASER_POWER:
                 enableLasers();
         }
     }
@@ -414,7 +467,7 @@ public class Main extends Application {
     }
 
     private void handleLasers(){
-        ArrayList < Laser > deadLasers = new ArrayList < Laser > ();
+        ArrayList < Laser > deadLasers = new ArrayList < > ();
 
         for (Laser myLaser: myLasers) {
             myLaser.moveUp();
@@ -458,7 +511,7 @@ public class Main extends Application {
         System.out.println("no more bouncers");
         if (playerLives == 0) {
             System.out.println("no more player lives");
-            displayStartScreen("You Lose\nPress 1 to try again.");
+            displaySplashScreen("You Lose\nPress 1 to try again.");
         } else {
             //if the player died but still has lives
             playerLives -= 1;
@@ -473,7 +526,7 @@ public class Main extends Application {
 
     private void handleAllBricksDead() {
         if (currentLevel == myBrickLayouts.size()) {
-            displayStartScreen("You Won!");
+            displaySplashScreen("You Won!");
         } else {
             currentLevel += 1;
             initLevel(currentLevel);
