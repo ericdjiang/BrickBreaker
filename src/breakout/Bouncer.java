@@ -4,6 +4,14 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Shape;
 
+/**
+ * This class represents a Bouncer which deflects off paddles and bricks
+ *
+ * @author  Eric Jiang
+ * @version 1.0
+ * @since   2020-01-20
+ */
+
 public class Bouncer extends Rectangle {
     int directionX = 0;
     int directionY = 0;

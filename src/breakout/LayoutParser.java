@@ -5,6 +5,15 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+/**
+ * This class reads a bricklayout text file and stores each level's corresponding
+ * brick/powerup layout in a 2D array
+ *
+ * @author  Eric Jiang
+ * @version 1.0
+ * @since   2020-01-20
+ */
+
 public class LayoutParser {
     ArrayList< String[][] > myBrickLayouts = new ArrayList < > ();
 

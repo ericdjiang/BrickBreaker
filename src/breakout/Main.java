@@ -117,7 +117,7 @@ public class Main extends Application {
 
 
     // splash screen messages
-    private final String WELCOME_MSG = "Welcome to BakeOut by Eric Jiang (edj9) \nPress 1 to START";
+    private final String WELCOME_MSG = "Welcome to BakeOut by Eric Jiang (edj9) \nThere are 3 levels. Move mouse to control the paddle positions. The object is to keep the bouncers in play and destroy bricks.\nCheatcodes are in the README\nPress 1 to START";
     private final String LOSE_MSG = "You lose\nPress 1 to try again";
     private final String WIN_MSG = "You win! Press 1 to start over";
 
@@ -534,12 +534,7 @@ public class Main extends Application {
         } else {
             //if the player died but still has lives
             playerLives -= 1;
-            initMainBouncer();
-            resetPaddlePosition();
-            pauseGame();
-            myScene.addEventFilter(MouseEvent.MOUSE_CLICKED, handleMouseInput);
-
-            System.out.println("new player lives" + playerLives);
+            resetPlayerPosition();
         }
     }
 
@@ -598,6 +593,12 @@ public class Main extends Application {
         root.getChildren().clear();
     }
 
+    private void resetPlayerPosition(){
+        initMainBouncer();
+        resetPaddlePosition();
+        pauseGame();
+        myScene.addEventFilter(MouseEvent.MOUSE_CLICKED, handleMouseInput);
+    }
     private void resetPlayerLives() {
         playerLives = PLAYER_START_LIVES;
     }
@@ -648,8 +649,8 @@ public class Main extends Application {
             resetPlayerLives();
         } else if (code == KeyCode.L) {
             playerLives += 1;
-        } else if (code == KeyCode.S) {
-            slowDownBouncers();
+        } else if (code == KeyCode.R) {
+            resetPlayerPosition();
         } else if (code == KeyCode.A) {
             widenPaddles();
         } else if (code == KeyCode.B) {

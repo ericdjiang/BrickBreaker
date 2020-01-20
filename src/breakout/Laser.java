@@ -3,6 +3,14 @@ package breakout;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
+/**
+ * This class holds a Laser which always moves upwards
+ *
+ * @author  Eric Jiang
+ * @version 1.0
+ * @since   2020-01-20
+ */
+
 public class Laser extends Rectangle {
     private final int VELOCITY_Y = -3;
 

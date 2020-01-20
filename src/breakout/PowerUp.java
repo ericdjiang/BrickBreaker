@@ -3,6 +3,15 @@ package breakout;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
+/**
+ * This class represents a PowerUp which falls down
+ * and gives the user an ability upon collision with a paddle
+ *
+ * @author  Eric Jiang
+ * @version 1.0
+ * @since   2020-01-20
+ */
+
 public class PowerUp extends ImageView {
     private final int VELOCITY_Y = 2;
     private String power;

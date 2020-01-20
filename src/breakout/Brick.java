@@ -4,6 +4,13 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 
+/**
+ * This class represents a singular Brick whose color changes based on its strength
+ *
+ * @author  Eric Jiang
+ * @version 1.0
+ * @since   2020-01-20
+ */
 
 public class Brick extends Rectangle {
     String index;
