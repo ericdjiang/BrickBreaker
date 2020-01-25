@@ -17,7 +17,14 @@ public class Bouncer extends Rectangle {
     int directionY = 0;
     int vel = 5;
 
-
+    /**
+     * Initializes a Bouncer object with the given position, size, and color
+     * @param startX the starting X position of the bouncer
+     * @param startY the starting Y position of the bouncer
+     * @param width the width of the bouncer
+     * @param height the height of the bouncer
+     * @param color the color of the bouncer
+     */
     Bouncer (int startX, int startY, int width, int height, Color color) {
         super( width, height, color);
 
