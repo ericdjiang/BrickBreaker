@@ -13,12 +13,6 @@ Finish Date: 01/20/2020
 
 Hours Spent: 45
 
-### Resources Used
-* JavaFX TutorialsPoint Website (https://www.tutorialspoint.com/javafx/index.htm)
-* CarlFX JavaFX GameTutorial (https://carlfx.wordpress.com/2012/03/29/javafx-2-gametutorial-part-1/)
-* Core Java by Cay Horstmann, Chapter 13
-* Oracle JavaFX documentation
-
 ### Running the Program
 
 Main class: Run Main.java
