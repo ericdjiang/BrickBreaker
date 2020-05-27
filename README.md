@@ -1,5 +1,5 @@
 # Description
-This project implements the game of Breakout.
+Let's play Brick Breaker - with a twist. Everything you love from the classic version with some unique powerups thrown in!
 
 ![GIF](doc/demo1.gif)
 
